@@ -1,0 +1,11 @@
+# Les données servies sont des binaires gzip : pas de conversion de fins de
+# ligne, comparaison binaire.
+*.gz binary
+
+# Normalise les fins de ligne des sources texte (évite le bruit CRLF/LF).
+*.html text
+*.css text
+*.js text
+*.py text
+*.md text
+*.json text

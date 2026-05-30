@@ -1,0 +1,3 @@
+# Ce fichier (vide) désactive Jekyll sur GitHub Pages.
+# SANS lui, GitHub ignore tous les fichiers/dossiers commençant par « _ »
+# (ex. les _index.json.gz du site) → la carte casserait avec des erreurs 404.

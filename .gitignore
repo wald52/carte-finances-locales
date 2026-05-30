@@ -1,0 +1,43 @@
+# ============================================================================
+#  Données : on ne publie QUE les fichiers compressés servis au site
+#  (`*.json.gz`, produits par scripts/build_gzip_served.py).
+#
+#  Les sources brutes OFGL/BANATIC (`.json`, `.csv`, `.xlsx`…) et les caches
+#  `_tmp_*` restent en local et ne sont PAS publiés. Comme les fichiers servis
+#  se terminent par « .gz », ignorer « *.json / *.csv / … » ne les touche pas.
+# ============================================================================
+data/**/*.json
+data/**/*.csv
+data/**/*.xlsx
+data/**/*.xls
+data/**/*.svg
+data/**/*.txt
+data/_tmp_*
+
+# Fichiers d'inventaire de travail (racine) — non servis par le site
+/inventory_clean.json
+/inventory_consolidees.json
+
+# ---------------------------------------------------------------------------
+# Fichiers temporaires de travail
+tmp/
+
+# Environnements Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# Outils éditeurs / IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Configuration locale Claude Code
+.claude/
+
+# Logs
+*.log

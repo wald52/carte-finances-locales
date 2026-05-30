@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Visualisation des indicateurs financiers des collectivités locales françaises (régions) à partir des données ouvertes de l'OFGL." />
+  <title>Échelons locaux</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-header__inner">
+      <h1 class="site-title">
+        <span class="site-title__main">Échelons locaux</span>
+        <span class="site-title__sub">Collectivités françaises · 2012-2024</span>
+      </h1>
+      <nav class="site-nav">
+        <a href="sources.html">Sources &amp; méthodologie</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="controls">
+      <div class="controls__group">
+        <span class="controls__label">Niveau</span>
+        <div class="level-tabs" role="tablist" aria-label="Niveau administratif">
+          <button class="level-tab level-tab--active" data-level="regions" role="tab" aria-selected="true">Régions</button>
+          <button class="level-tab" data-level="departements" role="tab" aria-selected="false">Départements</button>
+          <button class="level-tab" data-level="intercommunalites" role="tab" aria-selected="false">Intercommunalités</button>
+          <button class="level-tab" data-level="communes" role="tab" aria-selected="false">Communes</button>
+          <button class="level-tab" data-level="syndicats" role="tab" aria-selected="false">Syndicats</button>
+        </div>
+      </div>
+      <div class="controls__group">
+        <div class="controls__label-row">
+          <label for="indicator-select" class="controls__label">Indicateur affiché</label>
+          <span id="indicator-help" class="controls__inline-hint"></span>
+        </div>
+        <select id="indicator-select" class="controls__select" aria-describedby="indicator-help"></select>
+      </div>
+      <div class="controls__group">
+        <div class="controls__label-row">
+          <label for="year-slider" class="controls__label">
+            Exercice budgétaire :
+            <output id="year-value" for="year-slider">2024</output>
+          </label>
+          <span id="year-help" class="controls__inline-hint">Régions et départements : 2012 à 2024 · Communes : 2017 à 2024</span>
+        </div>
+        <div class="year-control">
+          <div class="year-play" role="group" aria-label="Lecture de l'évolution dans le temps">
+            <button id="year-play" class="year-play__btn" type="button" title="Lire l'évolution" aria-label="Lire l'évolution des années">▶</button>
+            <button id="year-pause" class="year-play__btn" type="button" title="Pause" aria-label="Mettre en pause" disabled>⏸</button>
+            <button id="year-stop" class="year-play__btn" type="button" title="Arrêter et revenir au début" aria-label="Arrêter et revenir au début" disabled>⏹</button>
+          </div>
+          <div class="year-track">
+            <input id="year-slider" type="range" class="controls__slider"
+                   min="0" max="0" step="1" value="0" aria-describedby="year-help" />
+            <div id="year-ticks" class="year-ticks" aria-hidden="true"></div>
+          </div>
+        </div>
+      </div>
+      <div class="controls__group controls__group--analyze">
+        <div class="controls__label-row">
+          <span class="controls__label">Graphiques</span>
+          <span class="controls__inline-hint">Comparer plusieurs territoires, croiser deux indicateurs, voir la distribution.</span>
+        </div>
+        <button id="analyze-open" class="analyze-open-btn" type="button" aria-haspopup="dialog">
+          <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" focusable="false">
+            <rect x="1" y="9" width="3" height="5" rx="0.5"></rect>
+            <rect x="6.5" y="5" width="3" height="9" rx="0.5"></rect>
+            <rect x="12" y="2" width="3" height="12" rx="0.5"></rect>
+          </svg>
+          Analyser
+        </button>
+      </div>
+    </section>
+
+    <section class="map-area" aria-label="Carte de France">
+      <div id="drilldown-header" class="drilldown-header" hidden>
+        <button id="drilldown-back" class="drilldown-back" type="button">
+          <span aria-hidden="true">←</span> Retour à la France
+        </button>
+        <span id="drilldown-title" class="drilldown-title"></span>
+      </div>
+      <svg
+        id="map"
+        class="map"
+        viewBox="-12 -12 824 647"
+        preserveAspectRatio="xMidYMid meet"
+        role="img"
+        aria-label="Carte de France">
+        <title>Carte de France</title>
+        <!-- Filtre dynamique pour la mise en évidence d'un EPCI : un chain de
+             feMorphology/feComposite calcule le halo autour de l'UNION
+             rasterizée des communes membres (pas autour de chaque commune
+             individuellement). Les enfants sont reconstruits côté JS à chaque
+             sélection EPCI selon la viewBox courante. -->
+        <defs>
+          <filter id="epci-union-halo-filter"
+                  filterUnits="userSpaceOnUse"
+                  primitiveUnits="userSpaceOnUse"></filter>
+          <!-- Pattern + mask pour les bandes diagonales MGP/EPT : sur les
+               147 indicateurs publiés à la fois au niveau MGP et au niveau
+               EPT (recettes/dépenses, dette, fiscalité directe…), on affiche
+               une bande sur deux à 45° avec la couleur MGP par-dessus la
+               couleur EPT (en arrière-plan). Le mask est appliqué au calque
+               #map__mgp_overlay. Voir CLAUDE.md §6 « Métropole du Grand Paris ». -->
+          <pattern id="mgp-diag-pattern"
+                   patternUnits="userSpaceOnUse"
+                   width="2.4" height="2.4"
+                   patternTransform="rotate(45)">
+            <rect x="0" y="0" width="1.0" height="2.4" fill="white"/>
+            <rect x="1.0" y="0" width="1.4" height="2.4" fill="black"/>
+          </pattern>
+          <mask id="mgp-diag-mask">
+            <rect x="-50" y="-50" width="924" height="747" fill="url(#mgp-diag-pattern)"/>
+          </mask>
+        </defs>
+        <!-- Layer décoratif : sert au mode communes overview pour montrer les
+             ~35 000 communes colorées en arrière-plan, non interactif. -->
+        <g id="map__decorative" pointer-events="none"></g>
+        <!-- Layer interactif : reçoit les clics. Selon le mode, contient les
+             régions, les départements ou les communes d'un département. -->
+        <g id="map__regions"></g>
+        <!-- Layer overlay MGP : duplique les ~130 communes Paris/PC avec un
+             remplissage selon la valeur MGP, masqué pour ne montrer qu'une
+             bande sur deux. Donne l'effet de bandes diagonales lorsque MGP
+             et EPT publient tous deux une valeur sur l'indicateur courant.
+             Vide hors intercommunalités overview / drill-down région IDF.
+             Placé EN DERNIER dans le DOM pour passer au-dessus des paths
+             interactifs en drill-down (qui sinon cachent l'overlay).
+             `pointer-events="none"` laisse les clics tomber sur les couches
+             ci-dessous (décoratif en overview, regions en drill-down). -->
+        <g id="map__mgp_overlay" pointer-events="none" mask="url(#mgp-diag-mask)" opacity="0.85"></g>
+        <!-- Contours des communes Paris/PC restaurés par-dessus l'overlay :
+             sans ce calque, les bandes diagonales effaceraient visuellement
+             les frontières communales/départementales. Paths dupliqués en
+             `fill: none, stroke: ...` pour redessiner uniquement les bords. -->
+        <g id="map__mgp_overlay_borders" pointer-events="none" fill="none"></g>
+      </svg>
+      <div id="legend" class="legend" aria-label="Légende"></div>
+      <label class="controls__checkbox map-area__scale-toggle">
+        <input id="scale-mode-toggle" type="checkbox" checked />
+        <span>Échelle constante sur toutes les années</span>
+      </label>
+      <p class="controls__help map-area__scale-help">
+        Activé (par défaut) : couleurs comparables d'une année à l'autre. Décocher pour recalculer les classes à chaque année (contraste maximal au sein de l'année).
+      </p>
+    </section>
+
+    <aside id="info-panel" class="panel" aria-live="polite">
+      <p class="panel__placeholder">
+        Sélectionnez une région pour afficher ses indicateurs détaillés.
+      </p>
+    </aside>
+  </main>
+
+  <!-- Tiroir « Analyser » : surface dédiée aux graphiques d'analyse
+       (comparaison multi-territoires, corrélation, distribution,
+       décomposition). Masqué par défaut, ouvert via le bouton #analyze-open.
+       Le contenu des onglets et du corps est rendu par app.js. -->
+  <div id="analyze-overlay" class="analyze-overlay" hidden>
+    <div class="analyze-backdrop" data-analyze-close></div>
+    <div class="analyze-dialog" role="dialog" aria-modal="true" aria-labelledby="analyze-title">
+      <header class="analyze-header">
+        <h2 id="analyze-title" class="analyze-title">Analyser</h2>
+        <button class="analyze-close" type="button" data-analyze-close aria-label="Fermer l'analyse">×</button>
+      </header>
+      <div class="analyze-tabs" role="tablist" aria-label="Type de graphique" id="analyze-tabs"></div>
+      <p class="analyze-context" id="analyze-context"></p>
+      <div class="analyze-body" id="analyze-body"></div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <p>
+      Données : <a href="https://data.ofgl.fr">OFGL</a> et
+      <a href="https://geo.api.gouv.fr">geo.api.gouv.fr</a>,
+      sous <a href="https://www.etalab.gouv.fr/licence-ouverte-open-licence">Licence Ouverte 2.0</a>.
+      <a href="sources.html">Méthodologie complète</a>.
+    </p>
+  </footer>
+
+  <script type="module" src="assets/js/app.js"></script>
+</body>
+</html>

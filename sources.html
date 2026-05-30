@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sources et méthodologie — Échelons locaux</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <style>
+    /* Styles spécifiques à la page Sources */
+    .article {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 1rem;
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .article h2 {
+      margin-top: 2rem;
+      padding-bottom: 0.3rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .article h3 {
+      margin-top: 1.5rem;
+    }
+    .article ul {
+      padding-left: 1.5rem;
+    }
+    .article li {
+      margin: 0.4rem 0;
+    }
+    .article table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+    }
+    .article th, .article td {
+      text-align: left;
+      padding: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .article th {
+      background: #f4f6f8;
+      font-weight: 600;
+    }
+    .article code {
+      background: #f4f6f8;
+      padding: 0.1rem 0.3rem;
+      border-radius: 3px;
+      font-size: 0.9em;
+    }
+    .article pre {
+      background: #f4f6f8;
+      padding: 0.75rem;
+      border-radius: var(--radius);
+      overflow-x: auto;
+      font-size: 0.85rem;
+    }
+    @media (min-width: 720px) {
+      .article {
+        padding: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-header__inner">
+      <h1 class="site-title">
+        <span class="site-title__main">Échelons locaux</span>
+        <span class="site-title__sub">Sources et méthodologie</span>
+      </h1>
+      <nav class="site-nav">
+        <a href="index.html">← Retour à la carte</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="layout">
+    <article class="article">
+
+      <p>
+        Toutes les données affichées sur ce site proviennent de sources publiques
+        officielles, libres d'usage et accessibles sans inscription. Cette page
+        recense ces sources, explique les indicateurs présentés et donne les
+        moyens de vérifier soi-même chaque chiffre.
+      </p>
+
+      <h2>D'où viennent les données ?</h2>
+
+      <h3>Listes administratives (régions, départements, communes)</h3>
+      <p>
+        L'API officielle <a href="https://geo.api.gouv.fr">geo.api.gouv.fr</a>
+        maintenue par <a href="https://www.etalab.gouv.fr">Etalab</a>, à partir
+        du <strong>Code Officiel Géographique (COG) de l'INSEE</strong>.
+      </p>
+
+      <h3>Comptes des collectivités</h3>
+      <p>
+        L'<strong>Observatoire des Finances et de la Gestion publique Locales</strong>
+        (<a href="https://data.ofgl.fr">OFGL</a>), organisme officiel créé par la
+        loi NOTRe de 2016. Sa mission légale est de centraliser et harmoniser
+        les comptes administratifs produits par la DGFiP pour les rendre
+        comparables d'une collectivité à l'autre, malgré des nomenclatures
+        comptables différentes (M14, M57, M71...).
+      </p>
+      <p>
+        Les données sont publiées sous
+        <a href="https://www.etalab.gouv.fr/licence-ouverte-open-licence">Licence Ouverte 2.0</a>.
+      </p>
+
+      <h2>Quels indicateurs sont affichés ?</h2>
+      <p>
+        Le site présente l'exercice budgétaire <strong>2024</strong>, en se
+        limitant au <strong>budget principal</strong> de chaque collectivité
+        (les budgets annexes — transports, déchets, eau, lycées professionnels…
+        — ne sont pas inclus), à <strong>deux exceptions près</strong> :
+      </p>
+      <ul>
+        <li>
+          <strong>Syndicats</strong> (SIVU, SIVOM, syndicats mixtes, PETR,
+          pôles métropolitains) : les valeurs sont issues de la
+          <em>base consolidée OFGL</em>
+          (<code>ofgl-base-syndicats-consolidee</code>), qui agrège budget
+          principal + budgets annexes après neutralisation des flux croisés
+          entre ces budgets. Pour les syndicats de transports, d'eau ou
+          de déchets, dont une part importante de l'activité se trouve en
+          budgets annexes, cette consolidation est nécessaire pour refléter
+          la réalité financière.
+        </li>
+        <li>
+          <strong>EPL</strong> (établissements publics locaux : EPA, régies
+          personnalisées EPIC et EPCC, GIP autres) : mêmes principes,
+          valeurs issues de <code>ofgl-base-epl-consolidee</code>.
+          L'agrégation géographique multi-niveau (région/département/EPCI/commune)
+          permet d'afficher les flux financiers de ces établissements sur les
+          territoires où ils sont géographiquement implantés, sans inventer
+          de tutelle administrative.
+        </li>
+        <li>
+          <strong>SDIS</strong> : tous les budgets sont sommés (principal +
+          annexes : cantine, formation, restaurant…), sans neutralisation
+          de flux croisés (volume marginal).
+        </li>
+      </ul>
+      <p>Les valeurs sont ramenées à la population pour permettre la comparaison.</p>
+
+      <h3>Indicateurs de base</h3>
+      <table>
+        <thead>
+          <tr><th>Indicateur</th><th>Définition</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Recettes de fonctionnement</td>
+            <td>Recettes récurrentes : impôts, dotations de l'État, produit des services.</td>
+          </tr>
+          <tr>
+            <td>Dépenses de fonctionnement</td>
+            <td>Dépenses récurrentes : personnel, achats, interventions, charges financières.</td>
+          </tr>
+          <tr>
+            <td>Dépenses d'équipement</td>
+            <td>Investissement réalisé sur le patrimoine propre de la collectivité.</td>
+          </tr>
+          <tr>
+            <td>Frais de personnel</td>
+            <td>Masse salariale totale.</td>
+          </tr>
+          <tr>
+            <td>Épargne brute</td>
+            <td>Recettes de fonctionnement − Dépenses de fonctionnement. Mesure la capacité à financer l'investissement et le remboursement de la dette.</td>
+          </tr>
+          <tr>
+            <td>Encours de dette</td>
+            <td>Stock de dette restant dû en fin d'exercice.</td>
+          </tr>
+          <tr>
+            <td>Annuité de la dette</td>
+            <td>Charge annuelle de remboursement (capital + intérêts).</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Ratios calculés</h3>
+      <p>Deux ratios sont calculés à partir des indicateurs ci-dessus :</p>
+      <ul>
+        <li>
+          <strong>Taux d'épargne brute (%)</strong> = 100 × Épargne brute /
+          Recettes de fonctionnement.<br />
+          Plus le taux est élevé, plus la collectivité dégage de marge sur
+          ses recettes courantes.
+        </li>
+        <li>
+          <strong>Capacité de désendettement (années)</strong> = Encours de
+          dette / Épargne brute.<br />
+          Mesure le nombre d'années qu'il faudrait, à épargne constante, pour
+          rembourser intégralement la dette. Repères usuels en analyse
+          financière locale : <em>moins de 8 ans</em> sain,
+          <em>8 à 12 ans</em> vigilance, <em>plus de 12 ans</em> alerte.
+          <br />
+          <em>Limitation</em> : ce ratio devient instable quand l'épargne brute
+          s'effondre. À toujours lire conjointement avec le taux d'épargne brute
+          et l'encours en €/hab.
+        </li>
+      </ul>
+
+      <h2>Comment lire la carte ?</h2>
+      <p>
+        L'échelle de couleurs utilise des <strong>quantiles</strong> (les
+        régions sont réparties en 7 groupes de tailles équivalentes) plutôt
+        qu'une échelle linéaire, afin de rester lisible malgré les valeurs
+        extrêmes des collectivités d'outre-mer et des CTU.
+      </p>
+      <p>
+        Les régions <strong>en gris clair</strong> n'ont pas de donnée
+        disponible.
+      </p>
+
+      <h2>Précautions de lecture</h2>
+      <h3>Collectivités à statut particulier</h3>
+      <ul>
+        <li>
+          La <strong>Corse</strong>, la <strong>Martinique</strong> et la
+          <strong>Guyane</strong> sont des Collectivités Territoriales Uniques
+          (CTU) qui exercent à la fois les compétences régionales et
+          départementales. Leurs montants par habitant sont mécaniquement plus
+          élevés et ne sont pas comparables aux 13 régions métropolitaines
+          classiques.
+        </li>
+        <li>
+          La <strong>Guadeloupe</strong> et <strong>La Réunion</strong> sont
+          des régions ultramarines avec des structures de recettes spécifiques
+          (octroi de mer, dotations).
+        </li>
+        <li>
+          <strong>Mayotte</strong> n'a pas de Conseil régional (les compétences
+          régionales sont exercées par le Département). OFGL ne publie donc rien
+          dans <code>ofgl-base-regions</code> pour Mayotte, mais publie en
+          revanche les comptes des EPL (établissements publics locaux)
+          physiquement implantés à Mayotte. Au niveau Régions, Mayotte
+          n'affichera donc que les indicateurs EPL ; tous les autres
+          (Recettes/Dépenses de fonctionnement, Dotations, etc.) resteront
+          en gris. Pour une vue financière complète de Mayotte, utiliser
+          le niveau Départements (code 976).
+        </li>
+      </ul>
+
+      <h3>Patrimoine (actif réévalué) — un instantané 2024, Paris exclu</h3>
+      <p>
+        Le groupe d'indicateurs <strong>« Patrimoine (actif réévalué) »</strong>
+        provient de deux jeux de données OFGL spécifiques
+        (<code>actifs_communes_2024</code> et <code>actifs_gfp_2024</code>).
+        OFGL y reconstruit la valeur du patrimoine non financier des
+        collectivités selon une méthodologie de <em>réévaluation</em> : les
+        mouvements comptables depuis 2012 sont rejoués puis revalorisés au
+        prix de 2024. À retenir pour lire ces 13 indicateurs :
+      </p>
+      <ul>
+        <li>
+          <strong>Un seul instantané au 31/12/2024</strong>, pas de série
+          temporelle. Sur la frise chronologique, seules les valeurs 2024
+          sont renseignées ; balayer les années 2017-2023 affiche un gris
+          total. C'est volontaire — nous ne dupliquons pas artificiellement
+          la valeur 2024 sur les années passées.
+        </li>
+        <li>
+          <strong>Paris (75056) est exclu par OFGL</strong>, ainsi qu'une
+          vingtaine de petites communes issues de fusions/défusions récentes.
+          La Ville de Paris est une collectivité à statut particulier (fusion
+          commune + département en 2019, nomenclature M57 propre) dont la
+          série comptable continue depuis 2012 n'est pas reconstituable.
+          OFGL ne publie son patrimoine réévalué dans <em>aucun</em> jeu de
+          données — Paris reste donc gris sur ces 13 indicateurs (alors qu'il
+          reste coloré pour tous les indicateurs de flux : recettes, dépenses,
+          dette). Nous n'inventons pas de valeur de substitution.
+        </li>
+        <li>
+          Au niveau <strong>Intercommunalités</strong>, 866 groupements sur
+          1 335 sont couverts. La <strong>Métropole de Lyon</strong>
+          (collectivité à statut particulier, traitée comme un département),
+          la <strong>Métropole du Grand Paris</strong> et 10 des 11
+          <strong>Établissements Publics Territoriaux</strong> du Grand Paris
+          (seul Est Ensemble est publié) restent gris, faute de publication
+          OFGL. Aix-Marseille-Provence et Bordeaux Métropole, elles, sont
+          couvertes.
+        </li>
+      </ul>
+
+      <h3>Données extra-financières des départements (collèges &amp; voirie) — à lire avec réserve</h3>
+      <p>
+        Le groupe <strong>« Extra-financier (collèges &amp; voirie) »</strong>
+        (niveau Départements) provient de la base interne OFGL
+        <code>interne-base-extrafinanciere-departements</code>, qui alimente la
+        <em>datastory</em> « zoom sur les dépenses départementales ».
+        Contrairement au reste du site, ces données ne sont <strong>pas issues
+        des comptes OFGL/BANATIC</strong> : les effectifs de collégiens viennent
+        du <strong>ministère de l'Éducation nationale</strong> et la longueur de
+        voirie des <strong>fichiers de dotations DGCL</strong>. Nous les
+        reprenons <strong>telles quelles</strong>. À retenir :
+      </p>
+      <ul>
+        <li>
+          <strong>Avertissement de fiabilité</strong> : ces valeurs ne sont pas
+          vérifiées au même niveau que les comptes financiers et
+          <strong>certaines peuvent comporter des erreurs</strong> (ruptures de
+          série inexpliquées, valeurs nulles ou aberrantes sur quelques
+          départements). Nous les affichons sans correction, par fidélité à la
+          source.
+        </li>
+        <li>
+          Les deux indicateurs en ratio (<strong>« par km »</strong> et
+          <strong>« par collégien »</strong>) sont une <strong>valeur unique
+          cumulée 2019-2024</strong>, publiée à l'identique sur chaque exercice.
+          Sur la frise chronologique, leur courbe est donc <em>plate</em> — ce
+          n'est pas un historique annuel. Les deux dénominateurs physiques
+          (effectifs collèges, longueur de voirie) sont, eux, de vraies séries
+          annuelles (2017-2024 ; voirie à partir de 2018).
+        </li>
+        <li>
+          <strong>Couverture</strong> : 99 départements. En outre-mer, seules
+          la Guadeloupe (971), La Réunion (974) et Mayotte (976) sont publiées ;
+          la Martinique (972) et la Guyane (973) sont absentes de la source et
+          restent grises.
+        </li>
+      </ul>
+
+      <h3>Contexte &amp; critères des intercommunalités — données de cadrage, hors comptes</h3>
+      <p>
+        Le groupe <strong>« Contexte &amp; critères (EPCI) »</strong>
+        (niveau Intercommunalités) provient des bases internes OFGL
+        <code>interne-criteres-ei-ofgl</code> et <code>interne-criteres-gfp-ofgl</code>,
+        qui décrivent le <strong>profil</strong> de chaque groupement. Comme pour
+        l'extra-financier, ces données ne sont <strong>pas issues des comptes
+        OFGL/BANATIC</strong> : le revenu par habitant vient de la
+        <strong>DGFiP</strong>, la part de logements sociaux du
+        <strong>RPLS/SRU</strong> (ministère du Logement), les quartiers
+        prioritaires (QPV) de l'<strong>ANCT</strong>, la nature juridique et le
+        mode de financement du référentiel <strong>BANATIC</strong>. Reprises
+        <strong>telles quelles</strong>. À retenir :
+      </p>
+      <ul>
+        <li>
+          <strong>Indicateurs catégoriels</strong> (nature juridique, mode de
+          financement, présence de QPV, type d'ensemble intercommunal, strates
+          OFGL…) : la carte les colorie de façon <strong>discrète</strong> — une
+          couleur par catégorie, et non un dégradé. La légende liste les
+          catégories présentes avec leur effectif ; le panneau remplace le
+          classement par une <strong>répartition</strong>.
+        </li>
+        <li>
+          Indicateurs <strong>numériques</strong> : revenu fiscal par habitant,
+          part de logements sociaux, population totale (dégradé habituel).
+        </li>
+        <li>
+          <strong>Couverture 2020-2023</strong> (la source ne publie pas 2024).
+          À l'exercice 2024, la carte reste grise et un message invite à
+          déplacer le curseur d'année. Les années antérieures à 2020 sont
+          également absentes.
+        </li>
+      </ul>
+
+      <h3>Collectivités hors périmètre OFGL — exclues de ce site</h3>
+      <p>
+        Les territoires suivants <strong>ne sont pas dans nos données</strong>,
+        ni sur la carte, parce qu'OFGL les exclut volontairement de ses
+        bases principales (régimes fiscaux propres, nomenclatures
+        comptables distinctes, statuts juridiques sui generis) :
+      </p>
+      <ul>
+        <li><strong>975</strong> Saint-Pierre-et-Miquelon (COM)</li>
+        <li><strong>977</strong> Saint-Barthélemy (COM)</li>
+        <li><strong>978</strong> Saint-Martin (COM)</li>
+        <li><strong>986</strong> Wallis-et-Futuna (COM)</li>
+        <li><strong>987</strong> Polynésie française (POM)</li>
+        <li><strong>988</strong> Nouvelle-Calédonie (statut sui generis)</li>
+      </ul>
+      <p>
+        Pour une intégration future, il faudrait sourcer leurs comptes
+        directement auprès des institutions locales (gouv.nc, ispf.pf,
+        territoire-wf.fr, DGOM) et créer des contours SVG dédiés — c'est
+        un chantier à part qui sort du périmètre OFGL strict.
+      </p>
+      <p>
+        Note : pour les <em>flux versés par l'État</em> (FPIC notamment),
+        ces communes apparaissent dans <code>dotations-communes</code>
+        d'OFGL. Si un indicateur spécifique le justifie, une intégration
+        partielle ciblée reste envisageable sans s'écarter d'OFGL.
+      </p>
+
+      <h3>Périmètre comptable</h3>
+      <p>
+        Les chiffres reflètent uniquement la <em>situation comptable</em> :
+        recettes, dépenses, dette. Ils ne disent rien de la qualité des
+        services rendus, des projets menés, ou de la satisfaction des
+        administrés. Une collectivité qui dépense beaucoup peut investir
+        utilement comme dépenser sans contrôle ; une collectivité qui dépense
+        peu peut être bien gérée comme sous-équipée.
+      </p>
+
+      <h2>Comment vérifier un chiffre par soi-même ?</h2>
+
+      <h3>Via l'interface OFGL</h3>
+      <ol>
+        <li>Aller sur <a href="https://data.ofgl.fr">data.ofgl.fr</a>.</li>
+        <li>Section « Les données » → choisir <code>Comptes des régions 2012-2024</code>.</li>
+        <li>Filtrer sur l'exercice, la région, l'agrégat et <code>Type de budget = Budget principal</code>.</li>
+        <li>Lire la colonne <code>Montant en € par habitant</code>.</li>
+      </ol>
+
+      <h3>Via l'API REST</h3>
+      <p>Exemple pour les recettes de fonctionnement de la Bretagne en 2024 :</p>
+      <pre><code>curl "https://data.ofgl.fr/api/explore/v2.1/catalog/datasets/ofgl-base-regions/records?\
+where=exer%3D%222024%22%20AND%20reg_name%3D%22Bretagne%22%20AND%20agregat%3D%22Recettes%20de%20fonctionnement%22%20AND%20type_de_budget%3D%22Budget%20principal%22"</code></pre>
+
+      <h3>Source primaire</h3>
+      <p>
+        Les comptes individuels bruts produits par la DGFiP sont également
+        publiés sur
+        <a href="https://data.economie.gouv.fr">data.economie.gouv.fr</a>
+        et <a href="https://www.collectivites-locales.gouv.fr">collectivites-locales.gouv.fr</a>.
+        C'est la source que l'OFGL retraite.
+      </p>
+
+      <h2>Pour aller plus loin</h2>
+      <p>
+        Le code source du site et les scripts de récupération des données sont
+        publiés en open source. La documentation technique complète (schémas,
+        formules détaillées, statuts particuliers, reproductibilité) se trouve
+        dans le fichier <code>data/SOURCES.md</code> du dépôt.
+      </p>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <p>
+      Données : <a href="https://data.ofgl.fr">OFGL</a> et
+      <a href="https://geo.api.gouv.fr">geo.api.gouv.fr</a> ·
+      <a href="https://www.etalab.gouv.fr/licence-ouverte-open-licence">Licence Ouverte 2.0</a>
+    </p>
+  </footer>
+</body>
+</html>
