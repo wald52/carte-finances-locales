@@ -352,3 +352,52 @@ sed -i 's/echelons-locaux-v[0-9]*/echelons-locaux-vNN/' sw.js
 
 Bonne chance. Ne casse pas la doctrine de fidélité aux données — c'est
 ce qui fait la valeur du projet.
+
+---
+
+## 13. Hébergement GitHub Pages (mise en ligne) — ajouté 2026-05-31
+
+Le site est publié sur **GitHub Pages** : dépôt `wald52/carte-finances-locales`
+(public), URL `https://wald52.github.io/carte-finances-locales/`.
+
+**Le problème de taille** : les fichiers réellement servis au navigateur pèsent
+~7,3 Go (21 096 `.json`/`.svg`), bien au-delà du ~1 Go de GitHub Pages. Solution :
+on **versionne uniquement des copies gzip** (`*.json.gz`, ~1,24 Go, ratio global
+×6) et le navigateur **décompresse à la volée**.
+
+- **`scripts/build_gzip_served.py`** : compresse en `.json.gz` l'ensemble EXACT
+  des fichiers servis (constantes `SERVED_DIRS` + `SERVED_SINGLES` — les mêmes que
+  les call sites de `loadJson`). Incrémental (skip si à jour), déterministe
+  (`mtime=0` → pas de bruit git), parallèle, prune des orphelins, nettoyage des
+  `.tmp`. **Si tu ajoutes une famille de fichiers chargée au runtime, ajoute son
+  chemin dans ce script**, sinon elle partira en `.json` brut (repli) et gonflera
+  le poids — ou manquera en ligne.
+- **Chargement JS** : `loadJson()` (app.js) et `loadGzipJson()` (decoratif-worker.js)
+  tentent `url + ".gz"` via `DecompressionStream("gzip")`, avec **repli automatique
+  sur le `.json` brut**. Donc le dev local marche avec ou sans `.gz`. ⚠️ En local,
+  le repli masque un `.gz` manquant (le `.json` brut existe sur disque) ; en ligne
+  il n'existe QUE le `.gz` → tester sur l'URL GitHub Pages réelle, pas seulement en
+  localhost. Vérifié OK le 2026-05-31 (8/8 familles de fichiers, GitHub sert les
+  `.gz` en `content-type: application/gzip` SANS `content-encoding` → pas de double
+  décompression).
+- **`.gitignore`** : ignore tout `data/**` SAUF les `*.json.gz`. Les données brutes
+  OFGL/BANATIC + caches `_tmp_*` (~17 Go) restent locaux.
+- **`.nojekyll`** (obligatoire) : sans lui, GitHub Pages masque les fichiers
+  commençant par `_` (les `_index.json.gz`) → carte cassée (404).
+- **`.gitattributes`** : `*.gz binary`.
+
+**Mettre à jour le site (workflow utilisateur)** : `.\scripts\publier.ps1`
+(optionnellement avec un message). Le script (1) recompresse l'incrémental,
+(2) **bumpe le SW** (sinon les visiteurs gardent l'ancienne version en cache),
+(3) `git add/commit/push`. GitHub republie en ~1-2 min. **Ne jamais oublier le bump
+SW** — c'est déjà automatisé dans `publier.ps1`, mais si tu pushes à la main, bump
+`CACHE_NAME` toi-même.
+
+**Pièges vécus** :
+- Ne PAS lancer la compression deux fois en parallèle (foreground + background) →
+  `PermissionError` Windows sur les `.tmp`. Le script porte désormais le PID dans le
+  nom du `.tmp` et réessaie `os.replace`, mais lance-le une seule fois.
+- Ne PAS lancer plusieurs commandes git en parallèle (add/commit/push simultanés) →
+  `.git/index.lock` bloque tout. Toujours séquentiel.
+- Après un faux départ avec de gros blobs (ex. `data/` brut ajouté par erreur puis
+  retiré), faire `git gc --prune=now` pour récupérer l'espace disque du `.git`.
