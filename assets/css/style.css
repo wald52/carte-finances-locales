@@ -2234,6 +2234,39 @@ body.analyze-open {
 }
 
 @media (max-width: 720px) {
+  /* Onglets de niveau : en grand format c'est un bandeau segmenté
+     (inline-flex, une seule ligne, largeur = contenu) qui DÉBORDE de l'écran
+     sur mobile car les 5 onglets ne tiennent pas sur une ligne. On le
+     transforme en grille de pastilles à 2 colonnes qui tient toujours dans la
+     largeur ; « Syndicats » occupe la dernière rangée entière (pas de cellule
+     vide). Un libellé long (« Intercommunalités ») revient à la ligne DANS sa
+     pastille au lieu de déborder. */
+  .level-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.4rem;
+    width: 100%;
+    border: none;
+    background: transparent;
+    overflow: visible;
+  }
+
+  .level-tab {
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    padding: 0.55rem 0.45rem;
+    font-size: 0.85rem;
+    line-height: 1.2;
+    white-space: normal;
+    overflow-wrap: break-word;
+    text-align: center;
+  }
+
+  .level-tab:last-child {
+    grid-column: 1 / -1;
+    border: 1px solid var(--border-strong);
+  }
+
   .analyze-cmp {
     grid-template-columns: 1fr;
   }
