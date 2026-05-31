@@ -401,3 +401,44 @@ SW** — c'est déjà automatisé dans `publier.ps1`, mais si tu pushes à la ma
   `.git/index.lock` bloque tout. Toujours séquentiel.
 - Après un faux départ avec de gros blobs (ex. `data/` brut ajouté par erreur puis
   retiré), faire `git gc --prune=now` pour récupérer l'espace disque du `.git`.
+
+---
+
+## 14. PWA (Progressive Web App / installable) — ajouté 2026-05-31
+
+Le site est une **PWA installable** (« Ajouter à l'écran d'accueil » sur mobile,
+« Installer » dans Chrome/Edge desktop). Les 3 critères sont réunis :
+HTTPS (GitHub Pages) + service worker avec gestionnaire `fetch` (déjà là, cf. §7)
++ **manifeste web avec icônes 192/512**.
+
+- **`manifest.webmanifest`** (racine) : `display: standalone`, `theme_color
+  #2c5282` (= `--accent`), `background_color #fafafa` (= `--bg`, écran de
+  démarrage), `start_url`/`scope`/`id` en **relatif `./`** (indispensable : le
+  site est servi sous le sous-chemin `/carte-finances-locales/` sur GitHub Pages,
+  une URL absolue casserait l'install). 4 icônes : favicon SVG + PNG 192 (`any`)
+  + PNG 512 (`any`) + PNG 512 `maskable`.
+- **Icônes** dans `assets/icons/` : `favicon.svg` (vectoriel, écrit à la main),
+  `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `apple-touch-icon.png`
+  (180, iOS). Design = tuile dégradé bleu de marque + l'Hexagone blanc + 3 barres
+  ascendantes (même motif que le bouton « Analyser »). **Régénérables** par
+  `python scripts/build_pwa_icons.py` (Pillow, supersampling ×4). Le `maskable`
+  garde le motif dans la zone de sécurité Android (80 %) ; l'`apple-touch` est en
+  pleine page (iOS arrondit lui-même).
+- **`<head>`** (dans `index.html` ET `sources.html`) : `<link rel=manifest>`,
+  `<meta name=theme-color>`, `<link rel=icon>` SVG, `<link rel=apple-touch-icon>`,
+  + métas `apple-mobile-web-app-*` / `mobile-web-app-capable`. (L'ancien favicon
+  vide `data:,` a été remplacé.)
+- **Service worker** : manifeste + 6 icônes ajoutés à `PRECACHE_URLS` (`sw.js`)
+  pour une install pleinement hors-ligne. Comme toujours, **bumper `CACHE_NAME`**
+  après toute modif (fait : v133).
+- **Publication** : aucun traitement spécial. `manifest.webmanifest` (`.webmanifest`,
+  pas `.json`) et les icônes (PNG/SVG) ne sont **pas** concernés par
+  `build_gzip_served.py` (qui ne gzippe que des `.json` de `data/`) → servis bruts,
+  versionnés normalement par le `git add -A` de `publier.ps1`. **Tester l'install
+  sur l'URL GitHub Pages réelle** (le `.webmanifest` doit être servi correctement),
+  pas seulement en localhost.
+- **Piège vécu (2026-05-31)** : après édition de `index.html`, le DOM affiché
+  restait l'ancien (favicon `data:,`, pas de lien manifeste) alors que les fichiers
+  sur disque étaient bons → c'était le **cache du SW** qui resservait l'ancien HTML
+  (cf. §7, Ctrl+F5). Pour vérifier l'état réel : purger les caches + désinscrire le
+  SW (`caches.keys()`→`delete`, `getRegistrations()`→`unregister`) puis recharger.

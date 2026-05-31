@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Échelons locaux">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2c5282"/>
+      <stop offset="1" stop-color="#1a365d"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="56" ry="56" fill="url(#g)"/>
+  <polygon points="128,25.6 39.32,76.8 39.32,179.2 128,230.4 216.68,179.2 216.68,76.8" fill="#ffffff"/>
+  <g fill="#2c5282">
+    <rect x="79.36"  y="130.15" width="24.32" height="40.86" rx="4.4"/>
+    <rect x="115.84" y="102.91" width="24.32" height="68.10" rx="4.4"/>
+    <rect x="152.32" y="75.68"  width="24.32" height="95.33" rx="4.4"/>
+  </g>
+</svg>

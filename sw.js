@@ -15,7 +15,7 @@
  *   - L'ancien cache sera nettoyé à l'activation.
  * ========================================================================= */
 
-const CACHE_NAME = "echelons-locaux-v132";
+const CACHE_NAME = "echelons-locaux-v134";
 
 const PRECACHE_URLS = [
   "./",
@@ -24,6 +24,13 @@ const PRECACHE_URLS = [
   "./assets/css/style.css",
   "./assets/js/app.js",
   "./assets/js/decoratif-worker.js",
+  // PWA : manifeste + icônes (pour une installation pleinement hors-ligne)
+  "./manifest.webmanifest",
+  "./assets/icons/favicon.svg",
+  "./assets/icons/icon-192.png",
+  "./assets/icons/icon-512.png",
+  "./assets/icons/icon-maskable-512.png",
+  "./assets/icons/apple-touch-icon.png",
 ];
 
 /** Préfixes de chemins qui doivent être mis en cache à la première requête.
