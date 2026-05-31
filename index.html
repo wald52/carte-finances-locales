@@ -91,13 +91,20 @@
         </button>
         <span id="drilldown-title" class="drilldown-title"></span>
       </div>
+      <!-- role="group" (et NON "img") : la carte contient des régions
+           interactives focusables (paths role="button"). Le rôle "img" est un
+           rôle « feuille » qui masque tout le contenu aux lecteurs d'écran →
+           conflit « nested-interactive » (boutons inatteignables). "group"
+           nommé expose la carte comme un ensemble de territoires sélectionnables
+           ; le détail du territoire choisi est annoncé via #info-panel
+           (aria-live="polite"). -->
       <svg
         id="map"
         class="map"
         viewBox="-12 -12 824 647"
         preserveAspectRatio="xMidYMid meet"
-        role="img"
-        aria-label="Carte de France">
+        role="group"
+        aria-label="Carte de France — territoires sélectionnables">
         <title>Carte de France</title>
         <!-- Filtre dynamique pour la mise en évidence d'un EPCI : un chain de
              feMorphology/feComposite calcule le halo autour de l'UNION
@@ -147,7 +154,7 @@
              `fill: none, stroke: ...` pour redessiner uniquement les bords. -->
         <g id="map__mgp_overlay_borders" pointer-events="none" fill="none"></g>
       </svg>
-      <div id="legend" class="legend" aria-label="Légende"></div>
+      <div id="legend" class="legend" role="group" aria-label="Légende"></div>
       <label class="controls__checkbox map-area__scale-toggle">
         <input id="scale-mode-toggle" type="checkbox" checked />
         <span>Échelle constante sur toutes les années</span>

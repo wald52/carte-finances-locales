@@ -9,7 +9,11 @@
   --bg-card: #ffffff;
   --fg: #1a1a1a;
   --fg-muted: #555;
-  --fg-faint: #888;
+  /* #6e6e6e (et non #888) : contraste >= 4.5:1 sur fond blanc et sur les fonds
+     quasi-blancs (#fafafa, #f4f6f8), seuil WCAG AA pour le texte normal.
+     #888 ne donnait que 3.5:1 (échec Lighthouse « color-contrast »). Reste
+     plus clair que --fg-muted (#555) : la hiérarchie visuelle est préservée. */
+  --fg-faint: #6e6e6e;
   --border: #e0e0e0;
   --border-strong: #bbb;
   --accent: #2c5282;
@@ -1644,7 +1648,7 @@ a:hover, a:focus {
 
 .syndicat-detail__year {
   font-size: 0.85rem;
-  color: #777;
+  color: #6e6e6e;
 }
 
 .syndicat-detail__value {
@@ -1679,7 +1683,7 @@ a:hover, a:focus {
 
 .syndicat-detail__siren {
   font-size: 0.8rem;
-  color: #777;
+  color: #6e6e6e;
 }
 .syndicat-detail__siren code {
   background: #efefec;
