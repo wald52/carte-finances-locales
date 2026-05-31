@@ -51,6 +51,10 @@ import io
 import sys
 from pathlib import Path
 
+# Ordre métier canonique des agrégats, partagé avec build_syndicats_leaderboard.py
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _agregats_order import agregat_sort_key
+
 # Force UTF-8 stdout for Windows (cp1252 workaround)
 if sys.platform == "win32":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
@@ -758,7 +762,7 @@ def write_indicators_snippet(indicators_present: set[str]) -> Path:
     # Reconstituer (activite, agregat) depuis la cle d'indicateur
     # Format : "EPL {activite} - {agregat} (eur)"
     entries: list[tuple[str, str, str]] = []  # (activite, agregat, full_key)
-    for k in sorted(indicators_present):
+    for k in indicators_present:
         if not k.startswith("EPL ") or " - " not in k or not k.endswith(" (€)"):
             continue
         body = k[len("EPL "):-len(" (€)")]  # "Tourisme - Achats et charges externes"
@@ -766,6 +770,9 @@ def write_indicators_snippet(indicators_present: set[str]) -> Path:
             continue
         activite, agregat = body.split(" - ", 1)
         entries.append((activite, agregat, k))
+    # Tri : activités alphabétiques (= ordre des groupes), puis agrégats dans
+    # l'ordre MÉTIER canonique (et non alphabétique). cf. scripts/_agregats_order.py
+    entries.sort(key=lambda e: (e[0], agregat_sort_key(e[1])))
 
     help_text = ("Comptes des établissements publics locaux (EPA, régies "
                  "personnalisées EPIC et EPCC, GIP autres) d'activité "

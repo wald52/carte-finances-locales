@@ -46,6 +46,10 @@ import unicodedata
 from collections import defaultdict
 from pathlib import Path
 
+# Ordre métier canonique des agrégats, partagé avec fetch_epl.py
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _agregats_order import agregat_sort_key
+
 # Force UTF-8 stdout
 if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
@@ -119,7 +123,7 @@ def write_indicators_snippet(pairs: list[tuple[str, str]], data_dir: Path) -> No
         lines.append("  // ====================================================================")
         lines.append(f"  // Syndicats — {comp}")
         lines.append("  // ====================================================================")
-        for agr in sorted(by_comp[comp]):
+        for agr in sorted(by_comp[comp], key=agregat_sort_key):
             key = f"Syndicats {comp} — {agr} (€)"
             label = f"{comp} — {agr}"
             group = f"Syndicats — {comp}"
