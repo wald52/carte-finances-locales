@@ -14,6 +14,15 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Échelons locaux" />
   <link rel="stylesheet" href="assets/css/style.css" />
+  <!-- Préchargement du rendu initial (vue régions par défaut). Le navigateur
+       lance le script ET les données EN PARALLÈLE dès le parse du <head>, au
+       lieu d'attendre que app.js soit téléchargé/parsé pour déclencher les
+       fetch. Raccourcit la chaîne critique réseau → LCP plus rapide.
+       (Préchargements ciblés sur le seul niveau régions ; les autres niveaux
+       se chargent au clic, inutile de les précharger.) -->
+  <link rel="modulepreload" href="assets/js/app.js" />
+  <link rel="preload" href="data/regions/regions-svg.json.gz" as="fetch" type="application/gzip" crossorigin />
+  <link rel="preload" href="data/regions/synthese-regions-2024.json.gz" as="fetch" type="application/gzip" crossorigin />
 </head>
 <body>
   <header class="site-header">

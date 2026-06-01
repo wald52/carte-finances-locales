@@ -41,3 +41,8 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Artefacts de mesure de performance (locaux, non publiés)
+/lh-*.json
+/.perf-backup/
+/.lhtmp/
