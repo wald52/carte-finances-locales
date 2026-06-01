@@ -365,6 +365,23 @@ Le site est publié sur **GitHub Pages** : dépôt `wald52/carte-finances-locale
 on **versionne uniquement des copies gzip** (`*.json.gz`, ~1,24 Go, ratio global
 ×6) et le navigateur **décompresse à la volée**.
 
+- **`scripts/optimize_served_payload.py`** (ajouté 2026-06-01) : étape post-process
+  **d'allègement de la copie SERVIE** (présentation / transfert), à lancer APRÈS les
+  `fetch_*` et **AVANT `build_gzip_served.py`**. Deux transformations, toutes deux sans
+  impact sur l'affichage : (1) **géométrie SVG** — retire de `regions-svg` les features
+  `niveau_zoom != "FRA"` (les régions n'ont pas de drill-down → le JS ne lit que les FRA,
+  ces formes `REG_xx` étaient du poids mort) + arrondit les coordonnées `d` à 1 décimale
+  (écart 0,05 px, sous-pixel) ; (2) **précision valeurs** — arrondit les €/hab de
+  `synthese-regions` à 2 décimales (le centime ; OFGL publie ~17 déc d'artefact flottant
+  montant÷pop). **Ne touche QUE la copie servie** — `fetch_all.py` garde la pleine
+  précision à la source (doctrine intacte). Idempotent. Gain : payload du rendu initial
+  régions **1120 → 548 Ko (−51 %)**, LCP Lighthouse online **8,2 → 5,2 s**, score perf
+  **70 → 75**. ⚠️ **Piège repro** : `publier.ps1` ne lance PAS ce script (seulement
+  `build_gzip_served.py`). Si tu re-fetch `regions-svg` ou `synthese-regions` (ex.
+  `fetch_all.py`), **relance `optimize_served_payload.py` avant de publier**, sinon le
+  payload regonfle. (Banc de mesure : `scripts/_perf_server.js` réplique GitHub Pages en
+  local ; mais le LCP simulé ne se mesure fidèlement qu'en ligne, cf. le score réel via
+  Lighthouse sur l'URL GitHub Pages.)
 - **`scripts/build_gzip_served.py`** : compresse en `.json.gz` l'ensemble EXACT
   des fichiers servis (constantes `SERVED_DIRS` + `SERVED_SINGLES` — les mêmes que
   les call sites de `loadJson`). Incrémental (skip si à jour), déterministe
