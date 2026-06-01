@@ -15,6 +15,21 @@
   <link rel="stylesheet" href="assets/css/style.css" />
   <style>
     /* Styles spécifiques à la page Sources */
+
+    /* Cette page ne contient qu'un seul article. On neutralise la grille / le
+       flex que .layout hérite de la carte (index.html), inadaptés ici :
+       - en flex-colonne (mobile/tablette), l'article gardait son min-width: auto
+         (= largeur min-content) et refusait de se réduire ; la longue ligne du
+         <pre> (URL curl) le bloquait à sa max-width 780px → débordement
+         horizontal sur petit écran ;
+       - en grille (desktop ≥ 900px), l'article était calé dans la colonne « 1fr »
+         avec une large zone vide à droite (décentré).
+       En display: block, l'article (max-width 780px, margin auto) se réduit
+       normalement sur mobile ET se centre sur toute la largeur en desktop. */
+    .layout {
+      display: block;
+    }
+
     .article {
       max-width: 780px;
       margin: 0 auto;
@@ -58,11 +73,21 @@
       padding: 0.1rem 0.3rem;
       border-radius: 3px;
       font-size: 0.9em;
+      /* Les identifiants de jeux de données (ex. interne-base-extrafinanciere-
+         departements) n'ont pas d'espace : on autorise la coupure n'importe où
+         pour qu'ils ne débordent pas sur petit écran. */
+      overflow-wrap: anywhere;
     }
     .article pre {
       background: #f4f6f8;
       padding: 0.75rem;
       border-radius: var(--radius);
+      /* La commande curl est une longue ligne unique. Sur mobile, on la fait
+         passer à la ligne (pre-wrap + coupure) plutôt que de la laisser déborder
+         ou imposer un défilement horizontal dans une boîte étroite. overflow-x
+         reste en repli si un mot très long subsiste. */
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
       overflow-x: auto;
       font-size: 0.85rem;
     }
@@ -109,7 +134,7 @@
       <p>
         L'<strong>Observatoire des Finances et de la Gestion publique Locales</strong>
         (<a href="https://data.ofgl.fr">OFGL</a>), organisme officiel créé par la
-        loi NOTRe de 2016. Sa mission légale est de centraliser et harmoniser
+        loi NOTRe de 2015. Sa mission légale est de centraliser et harmoniser
         les comptes administratifs produits par la DGFiP pour les rendre
         comparables d'une collectivité à l'autre, malgré des nomenclatures
         comptables différentes (M14, M57, M71...).
@@ -121,10 +146,13 @@
 
       <h2>Quels indicateurs sont affichés ?</h2>
       <p>
-        Le site présente l'exercice budgétaire <strong>2024</strong>, en se
-        limitant au <strong>budget principal</strong> de chaque collectivité
-        (les budgets annexes — transports, déchets, eau, lycées professionnels…
-        — ne sont pas inclus), à <strong>deux exceptions près</strong> :
+        Le site présente l'exercice budgétaire <strong>2024</strong> par défaut,
+        avec — selon les niveaux — un historique remontant jusqu'à
+        <strong>2012</strong>, consultable à l'aide du curseur d'année. Les
+        montants se limitent au <strong>budget principal</strong> de chaque
+        collectivité (les budgets annexes — transports, déchets, eau, lycées
+        professionnels… — ne sont pas inclus), à <strong>trois exceptions
+        près</strong> :
       </p>
       <ul>
         <li>
@@ -218,13 +246,17 @@
       <h2>Comment lire la carte ?</h2>
       <p>
         L'échelle de couleurs utilise des <strong>quantiles</strong> (les
-        régions sont réparties en 7 groupes de tailles équivalentes) plutôt
-        qu'une échelle linéaire, afin de rester lisible malgré les valeurs
-        extrêmes des collectivités d'outre-mer et des CTU.
+        territoires affichés sont répartis en 7 groupes de tailles équivalentes)
+        plutôt qu'une échelle linéaire, afin de rester lisible malgré les valeurs
+        extrêmes (collectivités d'outre-mer, CTU…). Par défaut l'échelle est
+        recalculée pour chaque niveau, indicateur et année ; la case
+        « Échelle constante sur toutes les années », sous la carte, permet de
+        figer les bornes sur toute la période pour comparer les millésimes entre
+        eux.
       </p>
       <p>
-        Les régions <strong>en gris clair</strong> n'ont pas de donnée
-        disponible.
+        Les territoires <strong>en gris clair</strong> n'ont pas de donnée
+        disponible pour l'indicateur et l'année sélectionnés.
       </p>
 
       <h2>Précautions de lecture</h2>
@@ -421,7 +453,14 @@
       <h3>Via l'API REST</h3>
       <p>Exemple pour les recettes de fonctionnement de la Bretagne en 2024 :</p>
       <pre><code>curl "https://data.ofgl.fr/api/explore/v2.1/catalog/datasets/ofgl-base-regions/records?\
-where=exer%3D%222024%22%20AND%20reg_name%3D%22Bretagne%22%20AND%20agregat%3D%22Recettes%20de%20fonctionnement%22%20AND%20type_de_budget%3D%22Budget%20principal%22"</code></pre>
+where=year(exer)%3D2024%20AND%20reg_name%3D%22Bretagne%22%20AND%20agregat%3D%22Recettes%20de%20fonctionnement%22%20AND%20type_de_budget%3D%22Budget%20principal%22"</code></pre>
+      <p>
+        La réponse JSON contient le champ <code>euros_par_habitant</code> (la
+        colonne « Montant en € par habitant » de l'interface) : ≈ 388 € pour la
+        Bretagne en 2024. Note : le millésime se filtre avec
+        <code>year(exer)</code>, le champ <code>exer</code> étant désormais typé
+        comme une date côté OFGL.
+      </p>
 
       <h3>Source primaire</h3>
       <p>
