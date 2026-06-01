@@ -52,9 +52,17 @@
       <div class="controls__group">
         <div class="controls__label-row">
           <label for="indicator-select" class="controls__label">Indicateur affiché</label>
-          <span id="indicator-help" class="controls__inline-hint"></span>
+          <!-- Pré-rempli avec l'aide de l'indicateur par défaut (« Recettes
+               totales ») : ce <span> est l'élément LCP de la page. Statique
+               dans le HTML, il est peint dès le premier rendu (FCP) au lieu
+               d'attendre que app.js le remplisse → LCP effondré. app.js réécrit
+               la même valeur ensuite (aucun changement visible). -->
+          <span id="indicator-help" class="controls__inline-hint">Recettes de fonctionnement + recettes d'investissement (dotations, subventions, emprunts mobilisés).</span>
         </div>
-        <select id="indicator-select" class="controls__select" aria-describedby="indicator-help"></select>
+        <!-- Option par défaut statique pour que le contrôle ait sa taille/texte
+             finals dès le premier paint (évite un décalage quand le combobox JS
+             prend le relais). app.js remplace le contenu au build. -->
+        <select id="indicator-select" class="controls__select" aria-describedby="indicator-help"><option>Recettes totales</option></select>
       </div>
       <div class="controls__group">
         <div class="controls__label-row">
