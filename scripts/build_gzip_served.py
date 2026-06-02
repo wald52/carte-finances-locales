@@ -45,6 +45,7 @@ SERVED_DIRS = [
     "data/syndicats/details",
 ]
 SERVED_SINGLES = [
+    "data/indicators.json",  # métadonnées des ~7350 indicateurs (sorti de app.js)
     "data/regions/synthese-regions-2024.json",
     "data/regions/regions-svg.json",
     "data/departements/synthese-departements-2024.json",
