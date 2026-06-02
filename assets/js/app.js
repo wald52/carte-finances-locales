@@ -6444,6 +6444,20 @@ async function init() {
   setupScaleModeToggle();
   setupAnalyzeDrawer();
 
+  // Laisser le navigateur PEINDRE les contrôles finalisés (dont l'élément LCP,
+  // le texte d'aide #indicator-help) AVANT de charger + rendre les données.
+  // Sans ce yield, le 1er paint incluant les contrôles n'a lieu qu'en fin
+  // d'init (après le téléchargement de la synthèse) → Lighthouse rattache le
+  // LCP à ce moment tardif (~5 s) alors que les contrôles sont prêts bien avant.
+  // requestAnimationFrame = paint-first ; repli setTimeout car rAF est suspendu
+  // dans un onglet en arrière-plan (sinon la carte ne se rendrait jamais).
+  await new Promise((r) => {
+    let done = false;
+    const go = () => { if (!done) { done = true; r(); } };
+    requestAnimationFrame(() => requestAnimationFrame(go));
+    setTimeout(go, 60);
+  });
+
   showLoader("Chargement…");
   try {
     const result = await loadSimpleLevel(state.currentLevel);
