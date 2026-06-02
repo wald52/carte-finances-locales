@@ -6444,21 +6444,24 @@ async function init() {
   setupScaleModeToggle();
   setupAnalyzeDrawer();
 
-  // Laisser le navigateur PEINDRE les contrôles finalisés (dont l'élément LCP,
-  // le texte d'aide #indicator-help) AVANT de charger + rendre les données.
-  // Sans ce yield, le 1er paint incluant les contrôles n'a lieu qu'en fin
-  // d'init (après le téléchargement de la synthèse) → Lighthouse rattache le
-  // LCP à ce moment tardif (~5 s) alors que les contrôles sont prêts bien avant.
-  // requestAnimationFrame = paint-first ; repli setTimeout car rAF est suspendu
-  // dans un onglet en arrière-plan (sinon la carte ne se rendrait jamais).
-  await new Promise((r) => {
-    let done = false;
-    const go = () => { if (!done) { done = true; r(); } };
-    requestAnimationFrame(() => requestAnimationFrame(go));
-    setTimeout(go, 60);
-  });
-
   showLoader("Chargement…");
+
+  // Détacher le chargement des données + le rendu de la carte dans une tâche
+  // SÉPARÉE (macro-tâche setTimeout), pour que le navigateur PEIGNE d'abord les
+  // contrôles — dont l'élément LCP, le texte d'aide #indicator-help, déjà prêt.
+  // Un simple `await` ne suffit pas : la chaîne async d'init reste « vivante »
+  // et le navigateur coalesce le paint des contrôles avec le rendu final (après
+  // le téléchargement de la synthèse) → Lighthouse rattache alors le LCP à ce
+  // moment tardif (~5 s). En sortant tout le travail data/rendu dans une tâche
+  // ultérieure, le paint des contrôles devient un évènement antérieur distinct,
+  // indépendant du téléchargement de la synthèse. setTimeout (pas rAF) →
+  // se déclenche aussi dans un onglet en arrière-plan.
+  setTimeout(() => { void loadInitialData(); }, 0);
+}
+
+/** Charge les données du niveau courant puis rend la carte/le panneau. Séparé
+ *  d'init() pour que les contrôles peignent avant ce travail (cf. LCP). */
+async function loadInitialData() {
   try {
     const result = await loadSimpleLevel(state.currentLevel);
     state.currentEntities = result.entities;
