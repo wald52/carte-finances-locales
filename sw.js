@@ -15,7 +15,7 @@
  *   - L'ancien cache sera nettoyé à l'activation.
  * ========================================================================= */
 
-const CACHE_NAME = "echelons-locaux-v147";
+const CACHE_NAME = "echelons-locaux-v148";
 
 const PRECACHE_URLS = [
   "./",

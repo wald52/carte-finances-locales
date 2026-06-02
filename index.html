@@ -20,6 +20,7 @@
        fetch. Raccourcit la chaîne critique réseau → LCP plus rapide.
        (Préchargements ciblés sur le seul niveau régions ; les autres niveaux
        se chargent au clic, inutile de les précharger.) -->
+  <link rel="modulepreload" href="assets/js/app.js" />
   <link rel="preload" href="data/regions/regions-svg.json.gz" as="fetch" type="application/gzip" crossorigin />
   <link rel="preload" href="data/regions/synthese-regions-2024.json.gz" as="fetch" type="application/gzip" crossorigin />
 </head>
@@ -213,23 +214,6 @@
     </p>
   </footer>
 
-  <!-- app.js (~4,9 Mo) est chargé APRÈS le premier paint. Son évaluation +
-       l'init (build du sélecteur, rendu carte/panneau) représentent l'essentiel
-       du travail main-thread ; sous le throttling CPU ×4 de Lighthouse mobile,
-       cela retarde le LCP (le <span> d'aide) à ~5 s alors que le shell statique
-       est prêt bien avant. En différant l'exécution via setTimeout, le shell —
-       dont l'élément LCP pré-rempli — peint d'abord, puis app.js prend le relais.
-       setTimeout (et non requestAnimationFrame, suspendu en arrière-plan) garantit
-       le chargement même dans un onglet inactif. Les données du rendu initial
-       sont déjà préchargées (<link rel=preload> ci-dessus). app.js gère le cas
-       où DOMContentLoaded est déjà passé. -->
-  <script>
-    setTimeout(function () {
-      var s = document.createElement("script");
-      s.type = "module";
-      s.src = "assets/js/app.js";
-      document.body.appendChild(s);
-    }, 0);
-  </script>
+  <script type="module" src="assets/js/app.js"></script>
 </body>
 </html>
