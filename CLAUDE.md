@@ -35,8 +35,10 @@ gestion des échelons locaux/
 ├── sources.html            # méthodologie + précautions de lecture
 ├── sw.js                   # Service Worker — bump CACHE_NAME à chaque release
 ├── assets/
-│   ├── css/style.css       # styles
-│   └── js/app.js           # 21k lignes, MONOLITHE — tout le rendu carto
+│   ├── css/style.css       # styles — SOURCE éditable
+│   ├── css/style.min.css   # servi au navigateur (généré par scripts/build_min.ps1)
+│   ├── js/app.js           # 21k lignes, MONOLITHE — tout le rendu carto — SOURCE
+│   └── js/app.min.js       # servi au navigateur (généré par scripts/build_min.ps1)
 ├── data/                   # données générées (gros ~1 Go avec by-dep et by-epci)
 │   ├── regions/            # synthese-regions-2024.json + svg + base brute
 │   ├── departements/       # synthese-departements-2024.json + svg + base brute
@@ -295,6 +297,7 @@ Windows cp1252).
 - **Drill-down EPCI région** : les entités viennent de `loadCommunesForEpci(siren)` qui n'a PAS `sirenEpt` par défaut. Si tu fais du drill-down sur Paris/PC, **inject `sirenEpt` via `communesMeta`** dans `loadCommunesForRegion`. Cf. la fonction actuelle qui le fait déjà.
 - **Génération snippet JS depuis Python** : si la chaîne contient `"` à l'intérieur, échapper en `«` ou `'`. Toujours tester `node -c app.js` après insertion.
 - **Bumper le SW** : oublier de bump = utilisateur garde la version cachée. Vérifier que `sw.js` a un `CACHE_NAME` à jour à chaque commit.
+- **`app.js` / `style.css` sont des SOURCES** : le navigateur charge `app.min.js` / `style.min.css` (minifiés par `scripts/build_min.ps1`, esbuild via npx — référencés dans `index.html` + `sources.html`, précachés dans `sw.js`). Après une édition de `app.js`/`style.css`, **relance `build_min.ps1`** sinon tu testes l'ancienne version. `scripts/serve.ps1` (test local) et `scripts/publier.ps1` (publication, étape 1/4) le font **automatiquement**. Gain : ~51 Ko gzip en moins sur le chemin critique (app.js 80→36 Ko, css 13→6 Ko). Ne pas committer une modif de `app.js` sans régénérer les `.min`.
 
 ---
 
@@ -329,8 +332,9 @@ l'utilisateur trancher. Il est rapide à décider quand le choix est clair.
 ## 12. Commandes utiles
 
 ```bash
-# Servir le site localement (Python)
-python -m http.server --directory . 8000
+# Servir le site localement (régénère d'abord app.min.js/style.min.css, puis sert)
+.\scripts\serve.ps1            # port 8000 (ou: .\scripts\serve.ps1 8001)
+# équivalent manuel : .\scripts\build_min.ps1 ; python -m http.server --directory . 8000
 
 # Run un fetch ciblé
 python scripts/fetch_fpic.py

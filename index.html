@@ -13,14 +13,14 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Échelons locaux" />
-  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/style.min.css" />
   <!-- Préchargement du rendu initial (vue régions par défaut). Le navigateur
        lance le script ET les données EN PARALLÈLE dès le parse du <head>, au
        lieu d'attendre que app.js soit téléchargé/parsé pour déclencher les
        fetch. Raccourcit la chaîne critique réseau → LCP plus rapide.
        (Préchargements ciblés sur le seul niveau régions ; les autres niveaux
        se chargent au clic, inutile de les précharger.) -->
-  <link rel="modulepreload" href="assets/js/app.js" />
+  <link rel="modulepreload" href="assets/js/app.min.js" />
   <!-- INDICATORS (~7350 indicateurs) est désormais externe à app.js (allège la
        compilation JS) : on le précharge car il est requis au démarrage pour
        construire le sélecteur. -->
@@ -218,6 +218,6 @@
     </p>
   </footer>
 
-  <script type="module" src="assets/js/app.js"></script>
+  <script type="module" src="assets/js/app.min.js"></script>
 </body>
 </html>

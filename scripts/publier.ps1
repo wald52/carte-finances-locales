@@ -8,11 +8,13 @@
   (ou avec un message :  .\scripts\publier.ps1 "Ajout des données 2025")
 
   Ce que fait le script, dans l'ordre :
-    1. Recompresse les données servies qui ont changé   (build_gzip_served.py)
-    2. Incrémente la version du Service Worker (sw.js)   — INDISPENSABLE pour
+    1. Minifie app.js / style.css → *.min (build_min.ps1) — ce sont les versions
+       réellement servies au navigateur (allège le chemin critique).
+    2. Recompresse les données servies qui ont changé   (build_gzip_served.py)
+    3. Incrémente la version du Service Worker (sw.js)   — INDISPENSABLE pour
        que les visiteurs déjà venus voient les nouvelles données (sinon leur
        navigateur ressert l'ancienne version en cache).
-    3. git add / commit / push  → GitHub republie le site automatiquement (~1 min).
+    4. git add / commit / push  → GitHub republie le site automatiquement (~1 min).
 
   Tu n'as JAMAIS à trier les fichiers à la main : le .gitignore ne versionne
   que les .json.gz servis, et git détecte tout seul ce qui a changé.
@@ -27,11 +29,15 @@ $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 
-Write-Host "==> 1/3  Compression des donnees servies (incremental)..." -ForegroundColor Cyan
+Write-Host "==> 1/4  Minification de app.js et style.css..." -ForegroundColor Cyan
+& (Join-Path $PSScriptRoot "build_min.ps1")
+if ($LASTEXITCODE -ne 0) { throw "La minification a echoue." }
+
+Write-Host "==> 2/4  Compression des donnees servies (incremental)..." -ForegroundColor Cyan
 python scripts/build_gzip_served.py
 if ($LASTEXITCODE -ne 0) { throw "La compression a echoue." }
 
-Write-Host "==> 2/3  Mise a jour de la version du Service Worker..." -ForegroundColor Cyan
+Write-Host "==> 3/4  Mise a jour de la version du Service Worker..." -ForegroundColor Cyan
 $swPath = Join-Path $root "sw.js"
 $sw = Get-Content $swPath -Raw
 if ($sw -match 'echelons-locaux-v(\d+)') {
@@ -43,7 +49,7 @@ if ($sw -match 'echelons-locaux-v(\d+)') {
   Write-Warning "    Version du Service Worker introuvable dans sw.js (etape ignoree)."
 }
 
-Write-Host "==> 3/3  Envoi sur GitHub..." -ForegroundColor Cyan
+Write-Host "==> 4/4  Envoi sur GitHub..." -ForegroundColor Cyan
 if ([string]::IsNullOrWhiteSpace($Message)) {
   $Message = "Mise a jour du site ($(Get-Date -Format 'yyyy-MM-dd'))"
 }

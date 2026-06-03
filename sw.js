@@ -15,14 +15,14 @@
  *   - L'ancien cache sera nettoyé à l'activation.
  * ========================================================================= */
 
-const CACHE_NAME = "echelons-locaux-v152";
+const CACHE_NAME = "echelons-locaux-v154";
 
 const PRECACHE_URLS = [
   "./",
   "./index.html",
   "./sources.html",
-  "./assets/css/style.css",
-  "./assets/js/app.js",
+  "./assets/css/style.min.css",
+  "./assets/js/app.min.js",
   "./assets/js/decoratif-worker.js",
   // PWA : manifeste + icônes (pour une installation pleinement hors-ligne)
   "./manifest.webmanifest",
