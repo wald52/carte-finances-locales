@@ -257,6 +257,20 @@ function describeEpciCategory(c) {
 // INDICATORS[0] reste « Recettes totales » (indicateur par défaut).
 // ----------------------------------------------------------------------------
 let INDICATORS = [];
+// Bootstrap de l'indicateur par défaut (= INDICATORS[0], « Recettes totales »),
+// copié en dur ici. Permet à init() de peindre la carte SANS attendre le
+// téléchargement + parse de data/indicators.json (~4,5 Mo). Le tableau complet
+// se charge ensuite hors chemin critique, et state.currentIndicator est
+// réaffecté à l'instance réelle INDICATORS[0] avant de construire le sélecteur.
+// DOIT rester identique au 1er élément de data/indicators.json.
+const BOOTSTRAP_INDICATOR = {
+  key: "Recettes totales",
+  label: "Recettes totales",
+  unit: "€/hab",
+  group: "Recettes",
+  levels: ["regions", "departements", "intercommunalites", "communes"],
+  help: "Recettes de fonctionnement + recettes d'investissement (dotations, subventions, emprunts mobilisés).",
+};
 async function loadIndicators() {
   if (INDICATORS.length) return INDICATORS;
   INDICATORS = await loadJson("data/indicators.json");
@@ -6427,13 +6441,14 @@ async function init() {
   // construire l'UI, pour que les contrôles soient déjà au bon état
   loadScalePreference();
 
-  // INDICATORS est désormais externe (data/indicators.json, ~4,5 Mo sorti de
-  // app.js) : on le charge AVANT de construire le sélecteur (qui le filtre par
-  // niveau). Le fichier est préchargé dans le <head> → déjà en cache ici.
-  await loadIndicators();
-  state.currentIndicator = INDICATORS[0]; // « Recettes totales » (1er du tableau)
+  // INDICATORS (data/indicators.json, ~4,5 Mo) n'est PAS requis pour peindre la
+  // carte : seul l'indicateur par défaut l'est. On bootstrappe celui-ci en dur
+  // et on diffère le téléchargement + parse du tableau complet APRÈS le premier
+  // rendu, hors chemin critique (le parse de 4,5 Mo bloquait le thread principal
+  // avant le paint → LCP/TBT gonflés sous le throttling CPU de Lighthouse). Le
+  // sélecteur d'indicateurs est construit plus bas, une fois le tableau prêt.
+  state.currentIndicator = BOOTSTRAP_INDICATOR; // « Recettes totales »
 
-  buildIndicatorSelector();
   buildLevelSelector();
   setupMapDelegation();
   setupPanelDelegation();
@@ -6472,6 +6487,16 @@ async function init() {
   // attendre une première sélection sur la carte.
   renderPanel();
   hideLoader();
+
+  // Hors chemin critique du LCP : la carte est peinte, on charge maintenant le
+  // tableau complet des indicateurs (préchargé dans le <head> → octets déjà en
+  // cache, le coût ici n'est que le parse JSON) puis on construit le sélecteur.
+  // state.currentIndicator passe du bootstrap à l'instance réelle INDICATORS[0]
+  // (même valeur — aucun changement visible — mais identité cohérente pour le
+  // sélecteur/combobox qui retrouvent l'option courante).
+  await loadIndicators();
+  state.currentIndicator = INDICATORS[0]; // « Recettes totales » (1er du tableau)
+  buildIndicatorSelector();
 }
 
 // Selon le moment où app.js s'exécute, DOMContentLoaded peut déjà être passé
