@@ -6436,7 +6436,92 @@ function setupAnalyzeDrawer() {
   });
 }
 
+// ----------------------------------------------------------------------------
+// MESURE PERF — harnais réversible (deep-link d'URL + marques de performance)
+// ----------------------------------------------------------------------------
+// But : pouvoir charger UN niveau / UN indicateur précis via l'URL, afin de
+// lancer Lighthouse (ou de lire des temps de boot) sur ce niveau isolément —
+// SANS découper le site en pages séparées.
+//
+//   index.html?level=intercommunalites
+//   index.html?level=communes&ind=Recettes%20totales
+//
+// 100 % inerte sans paramètre : sans ?level (ou avec ?level=regions) le chemin
+// de chargement par défaut « régions » reste STRICTEMENT inchangé.
+//
+// Pour TOUT retirer : supprimer (1) ce bloc, (2) la branche deep-link dans
+// init(), (3) les appels perfMark/perfMeasure. Rien d'autre n'en dépend.
+// ----------------------------------------------------------------------------
+const _PERF_LOG = [];
+function perfMark(name) {
+  try { performance.mark(name); } catch (_) {}
+}
+function perfMeasure(label, startMark) {
+  try {
+    const ms = Math.round(performance.measure(label, startMark).duration);
+    _PERF_LOG.push({ étape: label, ms });
+    window.__perf = _PERF_LOG;
+    console.info(`[perf] ${label} : ${ms} ms`);
+  } catch (_) {}
+}
+
+const _VALID_LEVELS = ["regions", "departements", "intercommunalites", "communes", "syndicats"];
+
+// Liste utilitaire des clés d'indicateurs d'un niveau. app.js est un module :
+// INDICATORS n'est pas global, on expose donc un helper sur window pour la
+// console. Ex. : __indicatorKeys("communes")
+window.__indicatorKeys = (level) => {
+  try { return getIndicatorsForLevel(level || state.currentLevel).map((i) => i.key); }
+  catch (_) { return []; }
+};
+
+/** Lit et valide ?level= / ?ind= depuis l'URL. */
+function readDeepLinkParams() {
+  let p;
+  try { p = new URLSearchParams(location.search); } catch (_) { return { level: null, ind: null }; }
+  const rawLevel = p.get("level");
+  const level = _VALID_LEVELS.includes(rawLevel) ? rawLevel : null;
+  if (rawLevel && !level) {
+    console.warn(`[perf] ?level=${rawLevel} inconnu — ignoré (valides : ${_VALID_LEVELS.join(", ")})`);
+  }
+  return { level, ind: p.get("ind") || null };
+}
+
+/** Sélectionne un indicateur par sa clé via le <select> natif (source de
+ *  vérité) → déclenche son `change` → applyColors/legend/panel existants.
+ *  No-op (avec avertissement) si la clé n'existe pas au niveau courant. */
+function applyIndicatorByKey(key) {
+  if (!key) return;
+  const select = $("#indicator-select");
+  if (!select) return;
+  if (!getIndicatorsForLevel(state.currentLevel).some((i) => i.key === key)) {
+    console.warn(`[perf] ?ind=« ${key} » indisponible au niveau ${state.currentLevel} — ignoré`);
+    return;
+  }
+  select.value = key;
+  select.dispatchEvent(new Event("change"));
+  console.info(`[perf] indicateur appliqué : « ${key} »`);
+}
+
+/** Boot direct sur un niveau ≠ « regions » via le chemin unifié switchLevel().
+ *  Appelé uniquement depuis init() quand ?level= cible un autre niveau. */
+async function bootDeepLinkLevel(deep) {
+  console.info(`[perf] boot direct → niveau « ${deep.level} »${deep.ind ? ` / indicateur « ${deep.ind} »` : ""}`);
+  showLoader("Chargement…");
+  // INDICATORS est requis par switchLevel() → rebuildIndicatorOptions().
+  await loadIndicators();
+  state.currentIndicator = INDICATORS[0];
+  buildIndicatorSelector();
+  perfMark("indicators:loaded");
+  // switchLevel() fait le chargement + rendu complet du niveau ciblé.
+  await switchLevel(deep.level);
+  perfMeasure("boot → carte peinte", "init:start");
+  applyIndicatorByKey(deep.ind);
+  if (window.__perf && window.__perf.length) console.table(window.__perf);
+}
+
 async function init() {
+  perfMark("init:start"); // MESURE PERF (réversible)
   // Charger les préférences utilisateur (mode d'échelle, etc.) AVANT de
   // construire l'UI, pour que les contrôles soient déjà au bon état
   loadScalePreference();
@@ -6458,6 +6543,18 @@ async function init() {
   setupYearPlayback();
   setupScaleModeToggle();
   setupAnalyzeDrawer();
+
+  // === MESURE PERF (réversible) : deep-link ?level=/?ind= ===================
+  // Boote directement sur un niveau précis pour le mesurer isolément
+  // (Lighthouse). Sans ?level (ou ?level=regions), le chemin par défaut
+  // ci-dessous reste STRICTEMENT inchangé. Retrait : supprimer ce bloc + le
+  // bloc « harnais » au-dessus de init() + les perfMark/perfMeasure.
+  const _deep = readDeepLinkParams();
+  if (_deep.level && _deep.level !== "regions") {
+    await bootDeepLinkLevel(_deep);
+    return;
+  }
+  // === fin deep-link — suite = chemin « régions » par défaut ================
 
   showLoader("Chargement…");
   try {
@@ -6487,6 +6584,7 @@ async function init() {
   // attendre une première sélection sur la carte.
   renderPanel();
   hideLoader();
+  perfMeasure("boot → carte peinte", "init:start"); // MESURE PERF (réversible)
 
   // Hors chemin critique du LCP : la carte est peinte, on charge maintenant le
   // tableau complet des indicateurs (préchargé dans le <head> → octets déjà en
@@ -6497,6 +6595,10 @@ async function init() {
   await loadIndicators();
   state.currentIndicator = INDICATORS[0]; // « Recettes totales » (1er du tableau)
   buildIndicatorSelector();
+
+  // MESURE PERF (réversible) : applique ?ind= si fourni (niveau régions) + journal.
+  applyIndicatorByKey(_deep.ind);
+  if (window.__perf && window.__perf.length) console.table(window.__perf);
 }
 
 // Selon le moment où app.js s'exécute, DOMContentLoaded peut déjà être passé
