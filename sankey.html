@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Vision globale des finances des collectivités territoriales françaises : ce qui entre et ce qui sort, additionné sur l'ensemble des collectivités (diagramme de flux)." />
+  <title>Vision globale — flux recettes / dépenses — Échelons locaux</title>
+  <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#2c5282" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Échelons locaux" />
+  <link rel="stylesheet" href="assets/css/style.min.css" />
+  <style>
+    /* Comme sources.html : neutraliser la grille 2 colonnes que .layout hérite
+       de la carte (index.html) — ici on veut un empilement vertical pleine
+       largeur (contrôles, avertissement, puis chaque diagramme de flux). */
+    .layout { display: block; }
+    .layout > * { margin-bottom: 1rem; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-header__inner">
+      <h1 class="site-title">
+        <span class="site-title__main">Échelons locaux</span>
+        <span class="site-title__sub">Vision globale · ce qui entre, ce qui sort</span>
+      </h1>
+      <nav class="site-nav">
+        <a href="index.html">← Carte</a>
+        <a href="sources.html">Sources &amp; méthodologie</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="controls">
+      <div class="controls__group">
+        <span class="controls__label">Périmètre</span>
+        <div class="level-tabs" role="tablist" aria-label="Périmètre des collectivités">
+          <button class="level-tab" data-level="communes" role="tab" aria-selected="false">Communes</button>
+          <button class="level-tab" data-level="intercommunalites" role="tab" aria-selected="false">Intercommunalités</button>
+          <button class="level-tab" data-level="departements" role="tab" aria-selected="false">Départements</button>
+          <button class="level-tab" data-level="regions" role="tab" aria-selected="false">Régions</button>
+          <button class="level-tab level-tab--active" data-level="combine" role="tab" aria-selected="true">Toutes collectivités</button>
+        </div>
+      </div>
+      <div class="controls__group">
+        <div class="controls__label-row">
+          <label for="sankey-year-slider" class="controls__label">
+            Exercice budgétaire :
+            <output id="sankey-year-value" for="sankey-year-slider">2024</output>
+          </label>
+          <span class="controls__inline-hint">Régions et départements : 2012 à 2024 · Intercommunalités et communes : 2017 à 2024</span>
+        </div>
+        <div class="year-track">
+          <input id="sankey-year-slider" type="range" class="controls__slider"
+                 min="0" max="0" step="1" value="0" />
+        </div>
+      </div>
+    </section>
+
+    <p id="sankey-warning" class="sankey-warning" hidden>
+      ⚠ <strong>Vue « Toutes collectivités » : double comptage.</strong>
+      Les quatre niveaux sont additionnés tels quels. Les flux <em>entre</em>
+      collectivités (dotations, subventions et participations croisées — ex. une
+      subvention d'un département à une commune) sont alors comptés deux fois :
+      en dépense pour l'une et en recette pour l'autre. Les totaux ne
+      correspondent donc pas à un « budget consolidé » de la France locale.
+      Pour une lecture sans double comptage, choisissez un niveau précis.
+    </p>
+
+    <p id="sankey-summary" class="sankey-summary"></p>
+
+    <section class="sankey-section">
+      <h2 class="sankey-section__title">Section de fonctionnement</h2>
+      <p class="sankey-section__desc">
+        Le quotidien des collectivités : à gauche d'où viennent les recettes
+        courantes, à droite comment elles sont dépensées. Ce qui n'est pas
+        consommé par le fonctionnement constitue l'<strong>épargne brute</strong>
+        (en vert), qui finance l'investissement.
+      </p>
+      <div class="sankey-scroll">
+        <svg id="sankey-fonct" class="sankey-svg" role="img"
+             aria-label="Diagramme de flux des recettes et dépenses de fonctionnement"></svg>
+      </div>
+    </section>
+
+    <section class="sankey-section">
+      <h2 class="sankey-section__title">Section d'investissement</h2>
+      <p class="sankey-section__desc">
+        Ce qui finance les équipements et le remboursement de la dette :
+        l'épargne brute, complétée par les recettes d'investissement (FCTVA,
+        subventions, emprunts), face aux dépenses d'équipement et au
+        remboursement du capital de la dette.
+      </p>
+      <div class="sankey-scroll">
+        <svg id="sankey-invest" class="sankey-svg" role="img"
+             aria-label="Diagramme de flux des recettes et dépenses d'investissement"></svg>
+      </div>
+    </section>
+
+    <p id="sankey-status" class="sankey-status">Chargement des données…</p>
+
+    <p class="sankey-foot-note">
+      Montants = sommes des comptes OFGL (Budget principal) de toutes les
+      collectivités du périmètre choisi, pour l'année sélectionnée. Données
+      verbatim, sans retraitement. Couverture : régions et départements
+      2012-2024 ; intercommunalités et communes 2017-2024.
+      Voir <a href="sources.html">Sources &amp; méthodologie</a>.
+    </p>
+  </main>
+
+  <footer class="site-footer">
+    <p>
+      Données : <a href="https://data.ofgl.fr">OFGL</a>.
+      Site statique, code ouvert.
+    </p>
+  </footer>
+
+  <script type="module" src="assets/js/sankey.min.js"></script>
+</body>
+</html>

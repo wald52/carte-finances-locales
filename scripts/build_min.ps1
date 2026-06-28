@@ -36,6 +36,12 @@ npx --yes esbuild assets/js/app.js `
   --outfile=assets/js/app.min.js
 if ($LASTEXITCODE -ne 0) { throw "esbuild a echoue sur app.js" }
 
+# JS — page « Vision globale » (sankey.html), aussi servie en module ESM.
+npx --yes esbuild assets/js/sankey.js `
+  --minify --format=esm --charset=utf8 --legal-comments=none `
+  --outfile=assets/js/sankey.min.js
+if ($LASTEXITCODE -ne 0) { throw "esbuild a echoue sur sankey.js" }
+
 # CSS
 npx --yes esbuild assets/css/style.css `
   --minify --charset=utf8 `
@@ -43,4 +49,5 @@ npx --yes esbuild assets/css/style.css `
 if ($LASTEXITCODE -ne 0) { throw "esbuild a echoue sur style.css" }
 
 Write-Host (Show-Saving "assets/js/app.js"     "assets/js/app.min.js")  -ForegroundColor Green
+Write-Host (Show-Saving "assets/js/sankey.js"  "assets/js/sankey.min.js") -ForegroundColor Green
 Write-Host (Show-Saving "assets/css/style.css" "assets/css/style.min.css") -ForegroundColor Green
