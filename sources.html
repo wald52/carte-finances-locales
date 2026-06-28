@@ -107,6 +107,7 @@
       </h1>
       <nav class="site-nav">
         <a href="index.html">← Retour à la carte</a>
+        <a href="sankey.html">Vision globale</a>
       </nav>
     </div>
   </header>
@@ -257,6 +258,36 @@
       <p>
         Les territoires <strong>en gris clair</strong> n'ont pas de donnée
         disponible pour l'indicateur et l'année sélectionnés.
+      </p>
+
+      <h2>Vision globale (diagramme de flux)</h2>
+      <p>
+        La page <a href="sankey.html">Vision globale</a> additionne, pour un
+        périmètre donné (un niveau de collectivités, ou les quatre niveaux
+        réunis), les <strong>montants</strong> des grands agrégats recettes /
+        dépenses publiés par l'OFGL (comptes au <em>Budget principal</em>), pour
+        l'année choisie. Elle les met en scène sous forme de
+        <strong>diagramme de flux</strong> (« ce qui entre, ce qui sort ») :
+        section de fonctionnement (recettes courantes → dépenses courantes +
+        épargne brute) puis section d'investissement (épargne brute + recettes
+        d'investissement → équipements + remboursement de la dette).
+      </p>
+      <p>
+        Les montants sont des sommes <strong>verbatim</strong> des comptes OFGL,
+        sans retraitement. Une part « Autres » est calculée par solde pour
+        boucler chaque total (ex. recettes de fonctionnement moins les postes
+        détaillés), et l'épargne brute est exactement <em>recettes de
+        fonctionnement − dépenses de fonctionnement</em>.
+      </p>
+      <p>
+        <strong>Attention au double comptage en vue « Toutes
+        collectivités ».</strong> Additionner les quatre niveaux compte deux fois
+        les flux <em>entre</em> collectivités : une subvention versée par un
+        département à une commune apparaît en dépense pour le département
+        <em>et</em> en recette pour la commune. Les totaux de cette vue ne
+        constituent donc pas un « budget consolidé » de la France locale ; pour
+        une lecture sans double comptage, choisir un niveau précis. Un
+        avertissement le rappelle sur la page.
       </p>
 
       <h2>Précautions de lecture</h2>

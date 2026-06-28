@@ -53,6 +53,7 @@ SERVED_SINGLES = [
     "data/communes/decoratif-paths-2024.json",
     "data/communes/meta-communes-2024.json",
     "data/intercommunalites/synthese-intercommunalites-2024.json",
+    "data/sankey/aggregates-2024.json",  # agrégats nationaux page « Vision globale »
 ]
 
 

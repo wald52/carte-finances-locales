@@ -463,3 +463,55 @@ HTTPS (GitHub Pages) + service worker avec gestionnaire `fetch` (déjà là, cf.
   sur disque étaient bons → c'était le **cache du SW** qui resservait l'ancien HTML
   (cf. §7, Ctrl+F5). Pour vérifier l'état réel : purger les caches + désinscrire le
   SW (`caches.keys()`→`delete`, `getRegistrations()`→`unregister`) puis recharger.
+
+---
+
+## 15. Page « Vision globale » — diagramme de flux (Sankey) — ajouté 2026-06-28
+
+Nouvelle page **`sankey.html`** (autonome, comme `sources.html`) : agrège les
+**montants** OFGL recettes/dépenses de TOUTES les collectivités d'un périmètre
+et les dessine en **diagramme de flux** type compte de résultat (« ce qui entre,
+ce qui sort »). Sélecteur de périmètre (Communes / Intercommunalités /
+Départements / Régions / **Toutes collectivités**) + curseur d'année.
+
+- **Données** : `scripts/build_sankey_aggregates.py` → `data/sankey/aggregates-2024.json`
+  (petit, ~24 Ko ; gzippé comme le reste). Forme : `{years:[2012..2024], source,
+  levels:{<niveau>:{<agregat>:[m_2012..m_2024]}, ..., combine:{...}}}`.
+  - **Source par défaut = OFGL officiel** : agrégation côté serveur via l'API
+    Explore v2.1 (`select=sum(montant)&group_by=exer`, filtre
+    `type_de_budget="Budget principal"`), datasets `ofgl-base-regions /
+    -departements / -gfp / -communes`. Aucune base lourde téléchargée. **C'est le
+    chemin du pipeline** (à relancer dans `publier.ps1` ou à la main avec réseau).
+  - **Repli `--offline`** (ou si le réseau échoue) : reconstruction locale
+    `euros_par_habitant × population` depuis les synthèses déjà sur disque
+    (`data/<niveau>/synthese-*.json.gz` + `communes/by-dep/*.json.gz`). Sert à
+    régénérer hors-ligne ; léger écart vs montants officiels (régions : €/hab
+    servi arrondi au centime par `optimize_served_payload.py` ; communes :
+    population = snapshot 2024 → écart sur les années antérieures). **Le fichier
+    committé a été généré ainsi** (env. de dev sans accès OFGL) — relancer SANS
+    `--offline` avant publication pour les montants officiels exacts.
+  - Cache OFGL : `data/_tmp_sankey.json`. Idempotent. Contrôle de cohérence en
+    fin de run : `RF ≈ DF + Épargne brute` (écart ~0 %).
+- **Front** : `assets/js/sankey.js` (module autonome, **zéro dépendance**,
+  `loadJson` recopié de `app.js`). Moteur **Sankey dessiné à la main en SVG**
+  (topologie fixe = compte administratif, pas de d3-sankey). Deux diagrammes
+  **conservés par construction** (flux entrant = sortant à chaque nœud) :
+  fonctionnement (sources → RF → {DF→postes, Épargne brute}) et investissement
+  (épargne + recettes d'inv. → emplois, nœud résidu « réserves » pour boucler).
+  Une part « Autres » est calculée par solde. **Tous les libellés à droite des
+  nœuds** (chaque colonne dépose ses libellés dans le gap qui la suit → zéro
+  collision inter-colonnes ; `LABEL_PAD` réserve la marge droite). CSS `.sankey-*`
+  dans `style.css`. `sankey.html` neutralise la grille `.layout` (`display:block`)
+  pour empiler les sections pleine largeur.
+- **Doctrine / double comptage** : montants verbatim OFGL. La vue « Toutes
+  collectivités » additionne les 4 niveaux → **double comptage des flux entre
+  collectivités** (dotations/subventions croisées) **assumé et signalé** par une
+  bannière d'avertissement (+ documenté dans `sources.html`). Pas un budget
+  consolidé. Syndicats/EPL **exclus** du flux (vocabulaire d'agrégats différent,
+  double comptage supplémentaire) — choix de périmètre assumé.
+- **Intégration build** : `sankey.js` minifié par `build_min.ps1` (→
+  `sankey.min.js`, servi en module) ; `data/sankey/aggregates-2024.json` ajouté à
+  `SERVED_SINGLES` de `build_gzip_served.py` ; `sankey.html` + `sankey.min.js`
+  pré-cachés dans `sw.js` (CACHE_NAME bumpé **v160 → v161**) ; liens nav ajoutés
+  dans `index.html` et `sources.html`. **Après toute modif de `sankey.js`,
+  régénérer `sankey.min.js`** (sinon on teste l'ancien) et bumper le SW.

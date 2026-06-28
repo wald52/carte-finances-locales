@@ -2284,3 +2284,96 @@ body.analyze-open {
     max-height: 95vh;
   }
 }
+
+/* ===== Page « Vision globale » (Sankey, sankey.html) ===== */
+
+.sankey-warning {
+  background: #fff8e1;
+  border: 1px solid #f0d27a;
+  border-left: 4px solid #e0a800;
+  border-radius: var(--radius);
+  padding: 0.7rem 0.9rem;
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: #5a4a1a;
+}
+
+.sankey-summary {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--fg);
+}
+
+.sankey-section {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1rem;
+}
+
+.sankey-section__title {
+  margin: 0 0 0.25rem;
+  font-size: 1.15rem;
+  color: var(--accent);
+}
+
+.sankey-section__desc {
+  margin: 0 0 0.6rem;
+  font-size: 0.9rem;
+  color: var(--fg-muted);
+  line-height: 1.45;
+  max-width: 70ch;
+}
+
+/* Le diagramme peut être plus large que l'écran sur mobile : défilement
+   horizontal plutôt que compression illisible. */
+.sankey-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sankey-svg {
+  display: block;
+  width: 100%;
+  min-width: 720px;
+  height: auto;
+}
+
+.sankey-link {
+  transition: fill-opacity 120ms ease;
+}
+.sankey-link:hover {
+  fill-opacity: 0.7;
+}
+
+.sankey-node {
+  stroke: rgba(0, 0, 0, 0.15);
+  stroke-width: 0.5;
+}
+
+.sankey-label {
+  font-family: inherit;
+  font-size: 12px;
+  fill: var(--fg);
+  pointer-events: none;
+}
+
+.sankey-amount {
+  font-size: 11px;
+  fill: var(--fg-muted);
+}
+
+.sankey-status {
+  margin: 0;
+  font-style: italic;
+  color: var(--fg-muted);
+}
+
+.sankey-foot-note {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--fg-faint);
+  line-height: 1.45;
+  max-width: 80ch;
+}
