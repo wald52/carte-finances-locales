@@ -263,14 +263,13 @@
       <h2>Vision globale (diagramme de flux)</h2>
       <p>
         La page <a href="sankey.html">Vision globale</a> additionne, pour un
-        périmètre donné (un niveau de collectivités, ou les quatre niveaux
-        réunis), les <strong>montants</strong> des grands agrégats recettes /
-        dépenses publiés par l'OFGL (comptes au <em>Budget principal</em>), pour
-        l'année choisie. Elle les met en scène sous forme de
-        <strong>diagramme de flux</strong> (« ce qui entre, ce qui sort ») :
-        section de fonctionnement (recettes courantes → dépenses courantes +
-        épargne brute) puis section d'investissement (épargne brute + recettes
-        d'investissement → équipements + remboursement de la dette).
+        périmètre donné, les <strong>montants</strong> des grands agrégats
+        recettes / dépenses publiés par l'OFGL, pour l'année choisie. Elle les
+        met en scène sous forme de <strong>diagramme de flux</strong> (« ce qui
+        entre, ce qui sort ») : section de fonctionnement (recettes courantes →
+        dépenses courantes + épargne brute) puis section d'investissement
+        (épargne brute + recettes d'investissement → équipements +
+        remboursement de la dette).
       </p>
       <p>
         Les montants sont des sommes <strong>verbatim</strong> des comptes OFGL,
@@ -280,14 +279,33 @@
         fonctionnement − dépenses de fonctionnement</em>.
       </p>
       <p>
-        <strong>Attention au double comptage en vue « Toutes
-        collectivités ».</strong> Additionner les quatre niveaux compte deux fois
-        les flux <em>entre</em> collectivités : une subvention versée par un
-        département à une commune apparaît en dépense pour le département
-        <em>et</em> en recette pour la commune. Les totaux de cette vue ne
-        constituent donc pas un « budget consolidé » de la France locale ; pour
-        une lecture sans double comptage, choisir un niveau précis. Un
-        avertissement le rappelle sur la page.
+        <strong>Par niveau</strong> (Communes, Intercommunalités, Départements,
+        Régions) : somme des comptes au <em>budget principal</em> de toutes les
+        entités du niveau (mêmes bases OFGL que la carte :
+        <code>ofgl-base-communes</code>, <code>-gfp</code>,
+        <code>-departements</code>, <code>-regions</code>).
+      </p>
+      <p>
+        <strong>Vue « Toutes collectivités » : consolidée.</strong> Additionner
+        naïvement les quatre niveaux compterait deux fois les flux <em>entre</em>
+        collectivités (une attribution de compensation versée par un EPCI à une
+        commune est une dépense pour l'un et une recette pour l'autre). Pour
+        l'éviter, le bloc communal est repris via les
+        <strong>ensembles intercommunaux consolidés</strong> publiés par l'OFGL
+        (<code>ofgl-base-ei</code> : EPCI à fiscalité propre + communes membres,
+        budgets annexes inclus, <em>flux internes neutralisés par l'OFGL</em>),
+        auxquels s'ajoutent les départements et les régions (budget principal).
+        Le double comptage EPCI↔communes — de loin le plus gros (attributions de
+        compensation, dotations de solidarité, fiscalité reversée) — disparaît
+        ainsi <em>sans aucune estimation de notre part</em> (consolidation
+        officielle OFGL). Deux limites, assumées et affichées sur la page :
+        (1) les transferts départements/régions → bloc communal restent comptés
+        deux fois (l'OFGL ne publie pas de consolidation nationale tous niveaux
+        en donnée réutilisable) ; (2) la consolidation EI n'existant qu'à partir
+        de 2017, la vue est vide avant. À noter : le total consolidé peut être
+        <em>supérieur</em> à la somme brute des budgets principaux, car les
+        ensembles intercommunaux incluent les budgets annexes (eau,
+        assainissement, transports…) du bloc communal.
       </p>
 
       <h2>Précautions de lecture</h2>

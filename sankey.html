@@ -54,7 +54,7 @@
             Exercice budgétaire :
             <output id="sankey-year-value" for="sankey-year-slider">2024</output>
           </label>
-          <span class="controls__inline-hint">Régions et départements : 2012 à 2024 · Intercommunalités et communes : 2017 à 2024</span>
+          <span class="controls__inline-hint">Régions et départements : 2012 à 2024 · Intercommunalités, communes et « Toutes collectivités » : 2017 à 2024</span>
         </div>
         <div class="year-track">
           <input id="sankey-year-slider" type="range" class="controls__slider"
@@ -64,13 +64,17 @@
     </section>
 
     <p id="sankey-warning" class="sankey-warning" hidden>
-      ⚠ <strong>Vue « Toutes collectivités » : double comptage.</strong>
-      Les quatre niveaux sont additionnés tels quels. Les flux <em>entre</em>
-      collectivités (dotations, subventions et participations croisées — ex. une
-      subvention d'un département à une commune) sont alors comptés deux fois :
-      en dépense pour l'une et en recette pour l'autre. Les totaux ne
-      correspondent donc pas à un « budget consolidé » de la France locale.
-      Pour une lecture sans double comptage, choisissez un niveau précis.
+      ℹ <strong>Vue « Toutes collectivités » : consolidée (2017-2024).</strong>
+      Le <em>bloc communal</em> (intercommunalités + communes membres) est pris
+      via les <strong>ensembles intercommunaux consolidés</strong> de l'OFGL
+      (budgets annexes inclus, flux internes EPCI↔communes neutralisés), puis
+      additionné aux <strong>départements</strong> et <strong>régions</strong>
+      (budget principal). Le double comptage EPCI↔communes (attributions de
+      compensation, dotations de solidarité, fiscalité reversée) est donc
+      <strong>retiré</strong>. Subsistent, comptés deux fois, les seuls
+      transferts entre départements/régions et le bloc communal (plus petits).
+      La consolidation OFGL n'existant qu'à partir de 2017, cette vue est vide
+      avant.
     </p>
 
     <p id="sankey-summary" class="sankey-summary"></p>
@@ -106,10 +110,13 @@
     <p id="sankey-status" class="sankey-status">Chargement des données…</p>
 
     <p class="sankey-foot-note">
-      Montants = sommes des comptes OFGL (Budget principal) de toutes les
-      collectivités du périmètre choisi, pour l'année sélectionnée. Données
-      verbatim, sans retraitement. Couverture : régions et départements
-      2012-2024 ; intercommunalités et communes 2017-2024.
+      Montants = sommes des comptes OFGL de toutes les collectivités du périmètre
+      choisi, pour l'année sélectionnée. Par niveau (Communes / Intercommunalités
+      / Départements / Régions) : budget principal. « Toutes collectivités » :
+      vue consolidée (bloc communal via les ensembles intercommunaux, flux
+      internes neutralisés ; + départements et régions au budget principal),
+      2017-2024. Données OFGL verbatim, sans retraitement. Couverture par niveau :
+      régions et départements 2012-2024 ; intercommunalités et communes 2017-2024.
       Voir <a href="sources.html">Sources &amp; méthodologie</a>.
     </p>
   </main>

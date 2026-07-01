@@ -475,21 +475,35 @@ ce qui sort »). Sélecteur de périmètre (Communes / Intercommunalités /
 Départements / Régions / **Toutes collectivités**) + curseur d'année.
 
 - **Données** : `scripts/build_sankey_aggregates.py` → `data/sankey/aggregates-2024.json`
-  (petit, ~24 Ko ; gzippé comme le reste). Forme : `{years:[2012..2024], source,
-  levels:{<niveau>:{<agregat>:[m_2012..m_2024]}, ..., combine:{...}}}`.
+  (petit, ~30 Ko ; gzippé comme le reste). Forme : `{years:[2012..2024], source,
+  levels:{<niveau>:{<agregat>:[m_2012..m_2024]}, ..., ei:{...}, combine:{...}}}`.
+  - **`combine` = vue CONSOLIDÉE (depuis 2026-07)** : Régions + Départements
+    (budget principal) + **`ei`** = somme des **ensembles intercommunaux
+    consolidés** (`ofgl-base-ei` : EPCI + communes membres, budgets annexes
+    inclus, flux internes neutralisés par l'OFGL). Remplace l'ancienne somme
+    brute des 4 niveaux → le double comptage EPCI↔communes disparaît (verbatim
+    OFGL, zéro estimation). Restent doublés : transferts dpt/région → bloc
+    communal (signalés sur la page). EI = 2017-2024 → `combine` null avant 2017.
+    ⚠ le consolidé peut être **>** à l'ancienne somme brute (les EI incluent
+    les budgets annexes eau/assainissement/transports du bloc communal).
+    L'OFGL ne publie AUCUNE consolidation nationale tous-niveaux en donnée
+    réutilisable (vérifié 2026-07 : rapport annuel PDF seulement) — d'où ce
+    choix « meilleure consolidation officielle disponible ».
   - **Source par défaut = OFGL officiel** : agrégation côté serveur via l'API
     Explore v2.1 (`select=sum(montant)&group_by=exer`, filtre
     `type_de_budget="Budget principal"`), datasets `ofgl-base-regions /
-    -departements / -gfp / -communes`. Aucune base lourde téléchargée. **C'est le
+    -departements / -gfp / -communes` + **`ofgl-base-ei` SANS filtre budget**
+    (dataset déjà consolidé). Aucune base lourde téléchargée. **C'est le
     chemin du pipeline** (à relancer dans `publier.ps1` ou à la main avec réseau).
   - **Repli `--offline`** (ou si le réseau échoue) : reconstruction locale
     `euros_par_habitant × population` depuis les synthèses déjà sur disque
-    (`data/<niveau>/synthese-*.json.gz` + `communes/by-dep/*.json.gz`). Sert à
-    régénérer hors-ligne ; léger écart vs montants officiels (régions : €/hab
-    servi arrondi au centime par `optimize_served_payload.py` ; communes :
-    population = snapshot 2024 → écart sur les années antérieures). **Le fichier
-    committé a été généré ainsi** (env. de dev sans accès OFGL) — relancer SANS
-    `--offline` avant publication pour les montants officiels exacts.
+    (`data/<niveau>/synthese-*.json.gz` + `communes/by-dep/*.json.gz`) ; pour
+    `ei`, somme des `montant` **consolidés verbatim** des
+    `ei-details/{siren}.json.gz` (1298 EI — pas une reconstruction). Léger écart
+    vs API sur les 4 niveaux (régions : €/hab servi arrondi au centime par
+    `optimize_served_payload.py` ; communes : population = snapshot 2024).
+    **Le fichier committé a été généré ainsi** (env. de dev sans accès OFGL) —
+    relancer SANS `--offline` avant publication pour les montants officiels.
   - Cache OFGL : `data/_tmp_sankey.json`. Idempotent. Contrôle de cohérence en
     fin de run : `RF ≈ DF + Épargne brute` (écart ~0 %).
 - **Front** : `assets/js/sankey.js` (module autonome, **zéro dépendance**,
@@ -504,14 +518,16 @@ Départements / Régions / **Toutes collectivités**) + curseur d'année.
   dans `style.css`. `sankey.html` neutralise la grille `.layout` (`display:block`)
   pour empiler les sections pleine largeur.
 - **Doctrine / double comptage** : montants verbatim OFGL. La vue « Toutes
-  collectivités » additionne les 4 niveaux → **double comptage des flux entre
-  collectivités** (dotations/subventions croisées) **assumé et signalé** par une
-  bannière d'avertissement (+ documenté dans `sources.html`). Pas un budget
-  consolidé. Syndicats/EPL **exclus** du flux (vocabulaire d'agrégats différent,
-  double comptage supplémentaire) — choix de périmètre assumé.
+  collectivités » est **consolidée via les EI** (cf. `combine` ci-dessus) : plus
+  de double comptage EPCI↔communes ; les seuls flux restants comptés deux fois
+  (dpt/région → bloc communal) sont **signalés** par une bannière explicative
+  (+ documenté dans `sources.html`, section « Vision globale »). Syndicats/EPL
+  **exclus** du flux (vocabulaire d'agrégats différent, double comptage
+  supplémentaire) — choix de périmètre assumé.
 - **Intégration build** : `sankey.js` minifié par `build_min.ps1` (→
   `sankey.min.js`, servi en module) ; `data/sankey/aggregates-2024.json` ajouté à
   `SERVED_SINGLES` de `build_gzip_served.py` ; `sankey.html` + `sankey.min.js`
-  pré-cachés dans `sw.js` (CACHE_NAME bumpé **v160 → v161**) ; liens nav ajoutés
+  pré-cachés dans `sw.js` (CACHE_NAME bumpé **v160 → v161**, puis **v162** pour
+  la consolidation) ; liens nav ajoutés
   dans `index.html` et `sources.html`. **Après toute modif de `sankey.js`,
   régénérer `sankey.min.js`** (sinon on teste l'ancien) et bumper le SW.

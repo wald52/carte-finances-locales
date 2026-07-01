@@ -4,9 +4,17 @@ Agrégats nationaux pour la page « Vision globale » (diagramme de flux Sankey)
 
 Additionne, pour CHAQUE niveau de collectivité (régions, départements,
 intercommunalités, communes) et pour chaque année, les MONTANTS (€) des grands
-agrégats recettes / dépenses / épargne publiés par l'OFGL. Produit aussi une
-ligne `combine` = somme des quatre niveaux (⚠ double comptage des flux entre
-collectivités assumé et documenté côté page).
+agrégats recettes / dépenses / épargne publiés par l'OFGL.
+
+Produit aussi une ligne **`ei`** (somme des ensembles intercommunaux consolidés
+`ofgl-base-ei` = bloc communal EPCI + communes, flux internes neutralisés par
+l'OFGL) et une ligne **`combine`** = vue « Toutes collectivités » CONSOLIDÉE =
+Régions + Départements + EI. On remplace ainsi communes + intercommunalités par
+leur consolidé EI → le double comptage EPCI↔communes (attributions de
+compensation, dotations de solidarité, fiscalité reversée) DISPARAÎT, en restant
+100 % données OFGL. Subsistent uniquement les transferts département/région →
+bloc communal (plus petits, signalés côté page). L'EI couvrant 2017-2024, la vue
+consolidée est nulle avant 2017.
 
 Deux sources de montants :
 
@@ -93,6 +101,15 @@ LEVELS = {
     },
 }
 
+# Ensemble intercommunal (bloc communal CONSOLIDÉ : EPCI + communes membres, flux
+# internes neutralisés — données OFGL `ofgl-base-ei`). Sert à construire la vue
+# « Toutes collectivités » SANS le double comptage EPCI↔communes (cf. CLAUDE.md
+# §6 « Ensembles intercommunaux »). Le dataset EI est déjà consolidé (un montant
+# par EI/agrégat/année) → PAS de filtre `type_de_budget`. Repli hors-ligne :
+# somme des montants consolidés verbatim dans data/intercommunalites/ei-details/.
+EI_DATASET = "ofgl-base-ei"
+EI_DETAILS_DIR = DATA / "intercommunalites" / "ei-details"
+
 # Agrégats OFGL nécessaires au diagramme de flux détaillé (sous-ensemble de
 # INDICATEURS_COMMUNS de fetch_all.py). Noms = champ `agregat` OFGL verbatim.
 AGREGATS = [
@@ -144,12 +161,15 @@ def _http_get_json(url: str, retries: int = 4) -> dict:
     raise last  # type: ignore[misc]
 
 
-def _fetch_ofgl_level(dataset: str) -> dict[str, dict[int, float]]:
+def _fetch_ofgl_level(dataset: str, budget_principal: bool = True) -> dict[str, dict[int, float]]:
     """Pour un dataset, renvoie {agregat: {annee: montant_total}} via
-    l'API d'agrégation OFGL (somme des montants au Budget principal)."""
+    l'API d'agrégation OFGL (somme des montants). `budget_principal` filtre sur
+    le Budget principal (faux pour ofgl-base-ei, déjà consolidé)."""
     out: dict[str, dict[int, float]] = {}
     for ag in AGREGATS:
-        where = f'type_de_budget="Budget principal" and agregat="{ag}"'
+        where = f'agregat="{ag}"'
+        if budget_principal:
+            where = f'type_de_budget="Budget principal" and ' + where
         qs = urllib.parse.urlencode(
             {
                 "select": "sum(montant) as m",
@@ -187,13 +207,19 @@ def build_from_ofgl(force: bool) -> dict[str, dict[str, list]]:
                 ag: {str(y): v for y, v in by_year.items()}
                 for ag, by_year in _fetch_ofgl_level(cfg["dataset"]).items()
             }
+        # EI = bloc communal consolidé (pas de filtre Budget principal).
+        print(f"  [OFGL] ei ({EI_DATASET}, consolidé) ...", flush=True)
+        cache["ei"] = {
+            ag: {str(y): v for y, v in by_year.items()}
+            for ag, by_year in _fetch_ofgl_level(EI_DATASET, budget_principal=False).items()
+        }
         CACHE_FILE.write_text(
             json.dumps(cache, ensure_ascii=False), encoding="utf-8"
         )
         print(f"  [cache écrit] {CACHE_FILE.name}")
 
     levels: dict[str, dict[str, list]] = {}
-    for level in LEVELS:
+    for level in list(LEVELS) + ["ei"]:
         per_ag = cache.get(level, {})
         levels[level] = {
             ag: [per_ag.get(ag, {}).get(str(y)) for y in YEARS] for ag in AGREGATS
@@ -280,21 +306,66 @@ def build_from_reconstruction() -> dict[str, dict[str, list]]:
             n += 1
     levels["communes"] = totals
     print(f"  [recon] communes: {n} communes")
+
+    # EI (bloc communal consolidé) : somme des montants consolidés VERBATIM des
+    # fichiers ei-details/{siren}.json.gz (pas une reconstruction — ce sont les
+    # montants OFGL consolidés tels quels). Couverture 2017-2024, 1298 EI.
+    levels["ei"] = _ei_from_details()
     return levels
+
+
+def _ei_from_details() -> dict[str, list]:
+    totals = _empty_totals()
+    n = 0
+    if not EI_DETAILS_DIR.exists():
+        print("  [recon] ei: dossier ei-details absent → vue consolidée vide")
+        return totals
+    for f in sorted(EI_DETAILS_DIR.glob("*.json.gz")):
+        if f.name.startswith("_"):
+            continue
+        d = _load_gz_json(f)
+        syn_years = d.get("years", [])
+        ags = d.get("agregats", {})
+        for ag in AGREGATS:
+            serie = ags.get(ag, {}).get("montant")
+            if not serie:
+                continue
+            for i, y in enumerate(syn_years):
+                if i >= len(serie) or serie[i] is None:
+                    continue
+                gi = YEARS.index(y) if y in YEARS else None
+                if gi is None:
+                    continue
+                totals[ag][gi] = (totals[ag][gi] or 0.0) + float(serie[i])
+        n += 1
+    print(f"  [recon] ei: {n} ensembles intercommunaux (consolidés)")
+    return totals
 
 
 # ---------------------------------------------------------------------------
 # Assemblage + écriture
 # ---------------------------------------------------------------------------
 def add_combine(levels: dict[str, dict[str, list]]) -> None:
+    """Vue « Toutes collectivités » CONSOLIDÉE = Régions + Départements +
+    Ensembles intercommunaux (bloc communal EPCI+communes, flux internes
+    neutralisés par l'OFGL). On NE somme PAS communes + intercommunalités
+    séparément (ce serait le double comptage EPCI↔communes) : l'EI les remplace.
+    Restent comptés deux fois les transferts département/région → bloc communal
+    (signalé sur la page). L'EI ne couvre que 2017-2024 → la vue consolidée est
+    nulle avant 2017 (pas de bloc communal disponible)."""
     combine = _empty_totals()
     for ag in AGREGATS:
         for gi in range(len(YEARS)):
-            s = None
-            for level in ("regions", "departements", "intercommunalites", "communes"):
+            ei = levels.get("ei", {}).get(ag, [None] * len(YEARS))[gi]
+            # Hors période EI (avant 2017) : pas de consolidé → null.
+            if ei is None:
+                combine[ag][gi] = None
+                continue
+            s = ei
+            for level in ("regions", "departements"):
                 v = levels.get(level, {}).get(ag, [None] * len(YEARS))[gi]
                 if v is not None:
-                    s = (s or 0.0) + v
+                    s += v
             combine[ag][gi] = s
     levels["combine"] = combine
 
